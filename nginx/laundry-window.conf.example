@@ -4,8 +4,9 @@ server {
     server_name laundry-window.local;
 
     # Change this if you copy the repository elsewhere.
-    root /var/www/laundry-window;
+    root /var/www/laundry-window/html;
     index index.html;
+    autoindex off;
 
     location / {
         try_files $uri $uri/ /index.html;
@@ -15,6 +16,11 @@ server {
         expires 7d;
         add_header Cache-Control "public, max-age=604800";
         try_files $uri =404;
+    }
+
+    # Keep dotfiles private if one is ever added to the web root.
+    location ~ /\.(?!well-known(?:/|$)) {
+        deny all;
     }
 
     add_header X-Content-Type-Options "nosniff" always;

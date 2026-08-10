@@ -5,13 +5,22 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 
 test("the static entrypoint references local assets", async () => {
-  const html = await readFile(new URL("index.html", root), "utf8");
+  const html = await readFile(new URL("html/index.html", root), "utf8");
   assert.match(html, /<title>Laundry Window/);
   assert.match(html, /href="styles\.css"/);
   assert.match(html, /src="app\.js"/);
   assert.match(html, /Samsung WF702Y4BKWQ\/EN/);
   assert.match(html, /Built for one Samsung family/);
   assert.doesNotMatch(html, /https?:\/\/[^"']+\.(?:css|js)/i);
+});
+
+test("only site assets live in the public web root", async () => {
+  await Promise.all([
+    access(new URL("html/index.html", root)),
+    access(new URL("html/styles.css", root)),
+    access(new URL("html/app.js", root)),
+  ]);
+  await assert.rejects(access(new URL("index.html", root)));
 });
 
 test("repository screenshots are present", async () => {
@@ -22,7 +31,7 @@ test("repository screenshots are present", async () => {
 });
 
 test("the official programme durations remain present", async () => {
-  const script = await readFile(new URL("app.js", root), "utf8");
+  const script = await readFile(new URL("html/app.js", root), "utf8");
   const expected = {
     cotton: 133,
     synthetics: 105,
@@ -45,6 +54,9 @@ test("the official programme durations remain present", async () => {
 
 test("the nginx example includes safe static defaults", async () => {
   const config = await readFile(new URL("nginx/laundry-window.conf.example", root), "utf8");
+  assert.match(config, /root \/var\/www\/laundry-window\/html;/);
+  assert.match(config, /autoindex off;/);
+  assert.match(config, /location ~ \/\\\./);
   assert.match(config, /try_files \$uri \$uri\/ \/index\.html/);
   assert.match(config, /X-Content-Type-Options/);
   assert.match(config, /Content-Security-Policy/);
