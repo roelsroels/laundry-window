@@ -140,8 +140,11 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .compat-card p { margin: 0; color: rgba(255,255,255,.62); font-size: 11px; line-height: 1.5; }
 .verified-card p { color: rgba(21,45,39,.7); }
 
-footer { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 38px; border-top: 1px solid rgba(21,45,39,.18); display: flex; justify-content: space-between; gap: 20px; font-size: 11px; }
-footer span { font-weight: 750; } footer p { margin: 0; color: var(--muted); }
+footer { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 38px; border-top: 1px solid rgba(21,45,39,.18); display: flex; align-items: center; justify-content: space-between; gap: 24px; font-size: 11px; }
+.footer-copy { display: grid; gap: 7px; }
+.footer-copy span { font-weight: 750; }
+.footer-copy p { margin: 0; color: var(--muted); line-height: 1.5; }
+.footer-support { min-height: 60px; flex: 0 0 auto; display: flex; align-items: center; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr 280px; }.dial-art { width: 260px; height: 260px; transform: scale(.9); }
@@ -159,7 +162,8 @@ footer span { font-weight: 750; } footer p { margin: 0; color: var(--muted); }
   .reference-grid { grid-template-columns: 1fr; }.reference-grid div:nth-child(n) { padding-left: 0; border-left: 0; }
   .programme-reference summary { align-items: flex-start; gap: 10px; }.programme-reference summary small { text-align: right; }
   .compatibility-section { padding: 30px 22px; border-radius: 17px; margin-bottom: 70px; }.compatibility-intro h2 { font-size: 36px; }
-  footer { display: block; }footer p { margin-top: 7px; line-height: 1.5; }
+  footer { flex-direction: column; align-items: flex-start; }
+  .footer-support { min-height: 60px; }
 }
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
