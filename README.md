@@ -4,7 +4,7 @@
 
 A tiny, dependency-free planner for the **Samsung WF702Y4BKWQ/EN** washing machine. Enter a cheap electricity-price window and a washing programme; Laundry Window calculates the whole-hour value to select with the machine's **Delay End / Uitgesteld einde** button.
 
-The site runs entirely in the browser. It has no analytics, cookies, server-side code, build step, package manager, or network dependency.
+The site runs entirely in the browser. It has no analytics, cookies, server-side code, build step, package manager, or network dependency. All publicly served files live under [`html/`](html/); repository documentation, tests, screenshots, and deployment configuration stay outside the web root.
 
 ## Screenshots
 
@@ -34,21 +34,21 @@ The site runs entirely in the browser. It has no analytics, cookies, server-side
 
 The `**` characters represent regional or finish suffixes. The exact machine photographed and used while building the calculator is `WF702Y4BKWQ/EN`; the sibling families are documented by Samsung in the same manual but have not all been physically tested here.
 
-Other Samsung models and other brands are **not currently assumed compatible**. The programme data is deliberately kept together in `app.js`, making a future brand/model selector straightforward once another machine's manual has been verified.
+Other Samsung models and other brands are **not currently assumed compatible**. The programme data is deliberately kept together in `html/app.js`, making a future brand/model selector straightforward once another machine's manual has been verified.
 
 ## Run locally
 
-Open `index.html` directly, or start any static file server in the repository directory. For example:
+Open `html/index.html` directly, or serve only the `html/` web root. For example:
 
 ```sh
-python3 -m http.server 8080
+python3 -m http.server 8080 --directory html
 ```
 
 Then open `http://localhost:8080`.
 
 ## Deploy with nginx
 
-Copy the repository to `/var/www/laundry-window`, then install the example vhost:
+Clone or copy the repository to `/var/www/laundry-window`, then install the example vhost:
 
 ```sh
 sudo cp nginx/laundry-window.conf.example /etc/nginx/sites-available/laundry-window
@@ -57,11 +57,18 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Change `server_name` and `root` in the vhost when your hostname or directory differs. For a local-only hostname, point `laundry-window.local` at the server in your local DNS or hosts file.
+The vhost uses `/var/www/laundry-window/html` as its document root, so files such as the README, tests, source notes, screenshots, Git metadata, and nginx configuration are not web-accessible. Change `server_name` and `root` when your hostname or clone directory differs. For a local-only hostname, point `laundry-window.local` at the server in your local DNS or hosts file.
+
+> [!IMPORTANT]
+> The repository itself is public on GitHub. Moving the site into `html/` creates a clean nginx serving boundary; it does not make repository files private.
 
 ## GitHub Pages
 
-Because the site is completely static, it can also be served directly with GitHub Pages: open **Settings → Pages**, choose **Deploy from a branch**, and select `main` with the repository root.
+The public site is automatically deployed from `html/` to:
+
+**https://roelsroels.github.io/laundry-window/**
+
+The Pages workflow uploads only the `html/` directory, preserving the same public-file boundary as the nginx configuration.
 
 ## Programme times
 
@@ -85,9 +92,10 @@ Samsung notes that actual cycle time can vary with water pressure and temperatur
 
 ```text
 .
-├── index.html               # Website structure
-├── styles.css               # Responsive design
-├── app.js                   # Programme data and calculation
+├── html/                    # Complete and only public web root
+│   ├── index.html           # Website structure
+│   ├── styles.css           # Responsive design
+│   └── app.js               # Programme data and calculation
 ├── nginx/                   # Example nginx vhost
 ├── docs/SOURCES.md          # Appliance documentation and caveats
 ├── screenshots/             # Real desktop and mobile captures
