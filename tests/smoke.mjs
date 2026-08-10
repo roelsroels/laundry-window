@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const root = new URL("../", import.meta.url);
@@ -10,7 +10,15 @@ test("the static entrypoint references local assets", async () => {
   assert.match(html, /href="styles\.css"/);
   assert.match(html, /src="app\.js"/);
   assert.match(html, /Samsung WF702Y4BKWQ\/EN/);
+  assert.match(html, /Built for one Samsung family/);
   assert.doesNotMatch(html, /https?:\/\/[^"']+\.(?:css|js)/i);
+});
+
+test("repository screenshots are present", async () => {
+  await Promise.all([
+    access(new URL("screenshots/laundry-window-desktop.png", root)),
+    access(new URL("screenshots/laundry-window-mobile.png", root)),
+  ]);
 });
 
 test("the official programme durations remain present", async () => {

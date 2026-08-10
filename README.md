@@ -6,6 +6,14 @@ A tiny, dependency-free planner for the **Samsung WF702Y4BKWQ/EN** washing machi
 
 The site runs entirely in the browser. It has no analytics, cookies, server-side code, build step, package manager, or network dependency.
 
+## Screenshots
+
+![Laundry Window desktop calculator](screenshots/laundry-window-desktop.png)
+
+<p align="center">
+  <img src="screenshots/laundry-window-mobile.png" width="390" alt="Laundry Window mobile calculator">
+</p>
+
 ## What it handles
 
 - The machine's real Delay End range: **3–19 hours in whole-hour increments**
@@ -16,6 +24,17 @@ The site runs entirely in the browser. It has no analytics, cookies, server-side
 - Prewash, which Samsung documents as adding approximately 18 minutes
 - Per-programme measured-time overrides, stored only in the current browser
 - A closest-fit suggestion when no setting keeps the complete wash inside the window
+
+## Compatibility
+
+| Status | Samsung washing machines |
+| --- | --- |
+| **Physically verified** | `WF702Y4BKWQ/EN` |
+| **Covered by the same official manual and programme table** | `WF702Y4BK**`, `WF702B4BK**`, `WF700Y4BK**`, `WF700B4BK**`, `WF602Y4BK**`, `WF602B4BK**`, `WF600Y4BK**`, `WF600B4BK**` |
+
+The `**` characters represent regional or finish suffixes. The exact machine photographed and used while building the calculator is `WF702Y4BKWQ/EN`; the sibling families are documented by Samsung in the same manual but have not all been physically tested here.
+
+Other Samsung models and other brands are **not currently assumed compatible**. The programme data is deliberately kept together in `app.js`, making a future brand/model selector straightforward once another machine's manual has been verified.
 
 ## Run locally
 
@@ -71,6 +90,7 @@ Samsung notes that actual cycle time can vary with water pressure and temperatur
 ├── app.js                   # Programme data and calculation
 ├── nginx/                   # Example nginx vhost
 ├── docs/SOURCES.md          # Appliance documentation and caveats
+├── screenshots/             # Real desktop and mobile captures
 └── tests/smoke.mjs          # Dependency-free repository checks
 ```
 
