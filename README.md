@@ -64,7 +64,11 @@ The vhost uses `/var/www/laundry-window/html` as its document root, so files suc
 
 ## GitHub Pages
 
-The nginx-oriented `html/` layout is intentionally not a GitHub Pages branch root. If Pages support is added later, deploy the contents of `html/` with a Pages workflow rather than exposing or copying repository-only files into the web root.
+The public site is automatically deployed from `html/` to:
+
+**https://roelsroels.github.io/laundry-window/**
+
+The Pages workflow uploads only the `html/` directory, preserving the same public-file boundary as the nginx configuration.
 
 ## Programme times
 
