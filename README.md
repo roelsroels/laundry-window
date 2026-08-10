@@ -4,7 +4,10 @@
 
 A tiny, dependency-free planner for the **Samsung WF702Y4BKWQ/EN** washing machine. Enter a cheap electricity-price window and a washing programme; Laundry Window calculates the whole-hour value to select with the machine's **Delay End / Uitgesteld einde** button.
 
-The site runs entirely in the browser. It has no analytics, cookies, server-side code, build step, package manager, or network dependency. All publicly served files live under [`html/`](html/); repository documentation, tests, screenshots, and deployment configuration stay outside the web root.
+The calculator runs entirely in the browser. It has no analytics, cookies, server-side code, build step, or package manager. The footer loads the optional Buy Me a Coffee button and its Bree Serif font from third-party CDNs. All publicly served files live under [`html/`](html/); repository documentation, tests, screenshots, and deployment configuration stay outside the web root.
+
+> [!NOTE]
+> The footer support button loads JavaScript from `cdnjs.buymeacoffee.com`, loads a font from Google Fonts, and links to `buymeacoffee.com/roels`. The calculator itself does not send your planning data anywhere.
 
 ## Screenshots
 

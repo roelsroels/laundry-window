@@ -4,14 +4,16 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url);
 
-test("the static entrypoint references local assets", async () => {
+test("the static entrypoint references the site assets and footer support button", async () => {
   const html = await readFile(new URL("html/index.html", root), "utf8");
   assert.match(html, /<title>Laundry Window/);
   assert.match(html, /href="styles\.css"/);
   assert.match(html, /src="app\.js"/);
   assert.match(html, /Samsung WF702Y4BKWQ\/EN/);
   assert.match(html, /Built for one Samsung family/);
-  assert.doesNotMatch(html, /https?:\/\/[^"']+\.(?:css|js)/i);
+  assert.match(html, /src="https:\/\/cdnjs\.buymeacoffee\.com\/1\.0\.0\/button\.prod\.min\.js"/);
+  assert.match(html, /data-slug="roels"/);
+  assert.match(html, /data-text="Buy me a beer"/);
 });
 
 test("only site assets live in the public web root", async () => {
@@ -60,4 +62,7 @@ test("the nginx example includes safe static defaults", async () => {
   assert.match(config, /try_files \$uri \$uri\/ \/index\.html/);
   assert.match(config, /X-Content-Type-Options/);
   assert.match(config, /Content-Security-Policy/);
+  assert.match(config, /script-src 'self' https:\/\/cdnjs\.buymeacoffee\.com/);
+  assert.match(config, /style-src 'self' 'unsafe-inline' https:\/\/fonts\.googleapis\.com/);
+  assert.match(config, /font-src 'self' https:\/\/fonts\.gstatic\.com/);
 });
