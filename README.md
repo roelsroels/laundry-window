@@ -27,6 +27,7 @@ The calculator runs entirely in the browser. It has no analytics, cookies, serve
 - Prewash, which Samsung documents as adding approximately 18 minutes
 - Per-programme measured-time overrides, stored only in the current browser
 - A preferred programme, initially **Dark garments**, stored only in the current browser
+- Complete English and Dutch interfaces, with the language stored only in the current browser
 - An optional live suggestion based on published Dutch day-ahead prices
 - A closest-fit suggestion when no setting keeps the complete wash inside the window
 
@@ -35,6 +36,8 @@ The calculator runs entirely in the browser. It has no analytics, cookies, serve
 The **Suggest window** button downloads today’s—and tomorrow’s, once published—Netherlands day-ahead prices from [Utilitarian Spot](https://spot.utilitarian.io/developer/). Its values originate from the ENTSO-E Transparency Platform and are supplied in `€/MWh` at the market’s available resolution, currently 15 minutes for the Netherlands.
 
 Laundry Window evaluates the real duration of the selected programme against every whole-hour Delay End choice from 3–19 hours. It recommends the complete cycle with the lowest duration-weighted average market price, then fills the manual window fields so the normal calculator remains the source of the displayed washer setting.
+
+Market prices remain aligned to their exact 15-minute intervals. The start/end fields filled by the suggestion are explicitly labelled as a **planning envelope**: the recommended wash time plus the selected safety margin. Refreshing “now” reruns the market optimisation so that this envelope cannot silently become stale.
 
 The displayed figure is the wholesale market component, converted to cents per kWh. It excludes energy tax, VAT, supplier markups, and other contract costs. Fixed additions do not change which interval is cheapest, but users should still treat the result as a planning suggestion rather than an exact retail-price quote. The external feed is best-effort; manual entry remains available if it is late or unavailable.
 
@@ -108,6 +111,7 @@ Samsung notes that actual cycle time can vary with water pressure and temperatur
 ├── html/                    # Complete and only public web root
 │   ├── index.html           # Website structure
 │   ├── styles.css           # Responsive design
+│   ├── i18n.js              # English/Dutch interface text and preference
 │   ├── app.js               # Programme data and Delay End calculation
 │   └── market-prices.js     # Browser-only market-price optimiser
 ├── nginx/                   # Example nginx vhost
