@@ -63,8 +63,11 @@
             <strong data-i18n="marketHeading">Find the cheapest fit</strong>
             <p data-i18n="marketIntro">Compares every valid Delay End setting for this programme.</p>
           </div>
-          <button id="suggest-market-window" type="button" data-i18n="suggest">Suggest window</button>
-          <p class="market-status" id="market-status" aria-live="polite" data-i18n="marketDefault">Fetched only when you ask. Market price excludes tax and supplier fees.</p>
+          <div class="market-actions" aria-label="Choose a price day" data-i18n-aria="marketDayLabel">
+            <button id="suggest-today" type="button" data-suggest-day="0" data-i18n="suggestToday">Suggest today</button>
+            <button id="suggest-tomorrow" type="button" data-suggest-day="1" data-i18n="suggestTomorrow">Suggest tomorrow</button>
+          </div>
+          <p class="market-status" id="market-status" aria-live="polite" data-i18n="marketDefault">The shown price is the raw wholesale market price, excluding all taxes, fees, supplier markups and other additions. Fetched only when you ask.</p>
           <small data-i18n-html="marketSource">Source: <a href="https://spot.utilitarian.io/developer/" rel="noreferrer">Utilitarian Spot</a> using <a href="https://transparency.entsoe.eu/" rel="noreferrer">ENTSO-E</a> data (CC BY 4.0).</small>
         </div>
 
@@ -145,6 +148,7 @@
       <div class="footer-copy">
         <span>Laundry Window</span>
         <p data-i18n="footerText">Made for one very specific Samsung—and one less piece of mental arithmetic.</p>
+        <a class="footer-repo" href="https://github.com/roelsroels/laundry-window" rel="noreferrer" data-i18n="githubRepo">View source on GitHub</a>
       </div>
       <div class="footer-support">
         <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="roels" data-color="#40DCA5" data-emoji="🍺"  data-font="Bree" data-text="Buy me a beer" data-outline-color="#000000" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>

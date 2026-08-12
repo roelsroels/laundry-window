@@ -28,19 +28,21 @@ The calculator runs entirely in the browser. It has no analytics, cookies, serve
 - Per-programme measured-time overrides, stored only in the current browser
 - A preferred programme, initially **Dark garments**, stored only in the current browser
 - Complete English and Dutch interfaces, with the language stored only in the current browser
-- An optional live suggestion based on published Dutch day-ahead prices
+- Separate optional suggestions for today and tomorrow, once tomorrow’s prices are published
 - A closest-fit suggestion when no setting keeps the complete wash inside the window
 - A proportional timeline: green inside the cheap window and orange outside it
 
 ## Live market-price suggestions
 
-The **Suggest window** button downloads today’s—and tomorrow’s, once published—Netherlands day-ahead prices from [Utilitarian Spot](https://spot.utilitarian.io/developer/). Its values originate from the ENTSO-E Transparency Platform and are supplied in `€/MWh` at the market’s available resolution, currently 15 minutes for the Netherlands.
+The **Suggest today** and **Suggest tomorrow** buttons download Netherlands day-ahead prices from [Utilitarian Spot](https://spot.utilitarian.io/developer/). Tomorrow is offered as soon as both its prices and a valid 3–19 hour machine setting are available. The values originate from the ENTSO-E Transparency Platform and are supplied in `€/MWh` at the market’s available resolution, currently 15 minutes for the Netherlands.
 
-Laundry Window evaluates the real duration of the selected programme against every whole-hour Delay End choice from 3–19 hours. It recommends the complete cycle with the lowest duration-weighted average market price, then fills the manual window fields so the normal calculator remains the source of the displayed washer setting.
+Laundry Window evaluates the real duration of the selected programme against every whole-hour Delay End choice from 3–19 hours. It recommends the reachable cycle with the lowest duration-weighted average market price.
 
-Market prices remain aligned to their exact 15-minute intervals. The start/end fields filled by the suggestion are explicitly labelled as a **planning envelope**: the recommended wash time plus the selected safety margin. Refreshing “now” reruns the market optimisation so that this envelope cannot silently become stale.
+The green period remains separate from that machine-constrained recommendation. It is the longest contiguous low-price band for the chosen day, aligned to exact 15-minute intervals; its cutoff is `max(€5/MWh, the day’s minimum + €10/MWh)`. The start/end fields contain this actual band—not the proposed wash itself. If the best still-selectable wash extends beyond it, the timeline shows that portion in orange and reports the percentage that remains inside. This prevents a late request from making an already-missed cheap period look 100% reachable.
 
-The displayed figure is the wholesale market component, converted to cents per kWh. It excludes energy tax, VAT, supplier markups, and other contract costs. Fixed additions do not change which interval is cheapest, but users should still treat the result as a planning suggestion rather than an exact retail-price quote. The external feed is best-effort; manual entry remains available if it is late or unavailable.
+Refreshing “now” reruns the same day’s market optimisation so the washer setting cannot silently become stale.
+
+The displayed figure is the **raw wholesale market price** (Dutch: **kale beursprijs**), converted to cents per kWh. It excludes every addition, including energy tax, VAT, network or supplier fees, supplier markups, and other contract costs. Fixed additions do not change which interval is cheapest, but users should still treat the result as a planning suggestion rather than an exact retail-price quote. The external feed is best-effort; manual entry remains available if it is late or unavailable.
 
 ## Compatibility
 

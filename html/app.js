@@ -22,7 +22,7 @@
   const form = $("#planner-form");
   const programme = $("#programme");
   const measured = $("#measured-time");
-  const marketButton = $("#suggest-market-window");
+  const marketButtons = Array.from(document.querySelectorAll("[data-suggest-day]"));
   const marketPrices = window.LaundryMarketPrices;
   const i18n = window.LaundryI18n;
   const t = (key, values) => i18n.t(key, values);
@@ -30,6 +30,7 @@
   let preferredProgramId = "dark";
   let suggestionActive = false;
   let lastMarketResult = null;
+  let lastSuggestionDayOffset = null;
 
   try { overrides = JSON.parse(localStorage.getItem("washer-program-overrides") || "{}"); } catch (_) { overrides = {}; }
   try {
@@ -146,13 +147,14 @@
     if (!suggestionActive) return;
     suggestionActive = false;
     lastMarketResult = null;
+    lastSuggestionDayOffset = null;
     updateWindowContext();
     setMarketStatus(t("settingsChanged"));
   }
 
   function updateWindowContext() {
     const margin = Number($("#safety-margin").value);
-    $("#window-context").textContent = suggestionActive ? t("marketEnvelope", { margin }) : t("manualWindow");
+    $("#window-context").textContent = suggestionActive ? t("marketWindow", { margin }) : t("manualWindow");
   }
 
   function marketPriceText(pricePerMwh) {
@@ -161,49 +163,58 @@
 
   function renderMarketSuccess() {
     if (!lastMarketResult) return;
-    const { best, availableUntil } = lastMarketResult;
-    setMarketStatus(t("marketSuccess", { program: programName(currentProgram()), start: momentText(new Date(best.start)), end: momentText(new Date(best.end)), price: marketPriceText(best.average), available: momentText(availableUntil) }), "success");
+    const { best, cheapWindow, availableUntil, dayOffset } = lastMarketResult;
+    const overlapMinutes = overlap(best.start, best.end, cheapWindow.start, cheapWindow.end);
+    const percent = Math.round(overlapMinutes / cycleMinutes() * 100);
+    setMarketStatus(t("marketSuccess", { day: t(dayOffset ? "tomorrow" : "today"), program: programName(currentProgram()), start: momentText(new Date(best.start)), end: momentText(new Date(best.end)), lowStart: momentText(new Date(cheapWindow.start)), lowEnd: momentText(new Date(cheapWindow.end)), percent, price: marketPriceText(best.average), available: momentText(availableUntil) }), "success");
   }
 
-  async function suggestMarketWindow() {
+  function updateMarketButtons(activeButton = null) {
+    marketButtons.forEach((button) => {
+      button.textContent = button === activeButton ? t("checking") : t(Number(button.dataset.suggestDay) ? "suggestTomorrow" : "suggestToday");
+    });
+  }
+
+  async function suggestMarketWindow(dayOffset = 0) {
     const planning = new Date($("#planning-time").value);
     if (Number.isNaN(planning.getTime())) {
       setMarketStatus(t("invalidPlanning"), "error");
       return;
     }
 
-    marketButton.disabled = true;
-    marketButton.textContent = t("checking");
+    const activeButton = marketButtons.find((button) => Number(button.dataset.suggestDay) === dayOffset);
+    marketButtons.forEach((button) => { button.disabled = true; });
+    updateMarketButtons(activeButton);
     setMarketStatus(t("fetching"));
 
     try {
       const response = await fetch(marketPrices.API_URL);
       if (!response.ok) throw new Error(`Price service returned ${response.status}`);
       const points = await response.json();
-      const best = marketPrices.findCheapestSchedule(points, planning, cycleMinutes());
+      const best = marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset);
+      const cheapWindow = marketPrices.findLowPriceWindow(points, planning, dayOffset);
       const intervals = marketPrices.normalisePricePoints(points);
       if (!intervals.length) throw new Error("The price feed returned no usable values");
 
-      if (!best) {
-        setMarketStatus(t("noMarketFit"), "error");
+      if (!best || !cheapWindow) {
+        const unavailable = dayOffset === 1 && !marketPrices.hasPricesForDay(points, planning, dayOffset);
+        setMarketStatus(t(unavailable ? "tomorrowUnavailable" : "noDayFit", { day: t(dayOffset ? "tomorrow" : "today") }), "error");
         return;
       }
 
-      const margin = Number($("#safety-margin").value);
-      const windowStart = new Date(best.start - margin * minute);
-      const windowEnd = new Date(best.end + margin * minute);
-      $("#cheap-start").value = inputValue(windowStart);
-      $("#cheap-end").value = inputValue(windowEnd);
+      $("#cheap-start").value = inputValue(new Date(cheapWindow.start));
+      $("#cheap-end").value = inputValue(new Date(cheapWindow.end));
       suggestionActive = true;
-      lastMarketResult = { best, availableUntil: new Date(intervals[intervals.length - 1].end) };
+      lastSuggestionDayOffset = dayOffset;
+      lastMarketResult = { best, cheapWindow, dayOffset, availableUntil: new Date(intervals[intervals.length - 1].end) };
       updateWindowContext();
       calculate();
       renderMarketSuccess();
     } catch (_) {
       setMarketStatus(t("marketError"), "error");
     } finally {
-      marketButton.disabled = false;
-      marketButton.textContent = t("suggest");
+      marketButtons.forEach((button) => { button.disabled = false; });
+      updateMarketButtons();
     }
   }
 
@@ -231,21 +242,27 @@
     const protectedStart = new Date(windowStart.getTime() + margin * minute);
     const protectedEnd = new Date(windowEnd.getTime() - margin * minute);
     const fitting = schedules.filter((item) => item.start >= protectedStart && item.end <= protectedEnd);
+    const marketSchedule = suggestionActive && lastMarketResult ? schedules.find((item) => item.delayHours === lastMarketResult.best.delayHours) : null;
 
-    if (fitting.length) {
+    if (marketSchedule && fitting.includes(marketSchedule)) {
+      return renderSchedule(marketSchedule, selected, plannedMinutes, windowStart, windowEnd, true);
+    }
+
+    if (!marketSchedule && fitting.length) {
       const centre = (windowStart.getTime() + windowEnd.getTime()) / 2;
       fitting.sort((a, b) => Math.abs((a.start.getTime() + a.end.getTime()) / 2 - centre) - Math.abs((b.start.getTime() + b.end.getTime()) / 2 - centre));
       return renderSchedule(fitting[0], selected, plannedMinutes, windowStart, windowEnd, true);
     }
 
     schedules.sort((a, b) => b.overlapMinutes - a.overlapMinutes);
+    const closestSchedule = marketSchedule || schedules[0];
     let message = t("noWholeFit");
     let warningTitle = "";
     const windowMinutes = (windowEnd - windowStart) / minute;
-    const percent = Math.round(schedules[0].overlapMinutes / plannedMinutes * 100);
+    const percent = Math.round(closestSchedule.overlapMinutes / plannedMinutes * 100);
     if (percent === 100 && margin > 0) {
-      const startBuffer = Math.max(0, Math.round((schedules[0].start - windowStart) / minute));
-      const endBuffer = Math.max(0, Math.round((windowEnd - schedules[0].end) / minute));
+      const startBuffer = Math.max(0, Math.round((closestSchedule.start - windowStart) / minute));
+      const endBuffer = Math.max(0, Math.round((windowEnd - closestSchedule.end) / minute));
       const availableMargin = Math.min(startBuffer, endBuffer);
       const shortfall = Math.max(0, margin - availableMargin);
       message = t("safetyMessage", { used: shortfall, margin });
@@ -253,7 +270,7 @@
     } else if (plannedMinutes + margin * 2 > windowMinutes) message = t("tooLong");
     else if (windowEnd.getTime() < planning.getTime() + 3 * hour) message = t("tooEarly");
     else if (windowStart.getTime() > planning.getTime() + 19 * hour) message = t("tooLate");
-    renderSchedule(schedules[0], selected, plannedMinutes, windowStart, windowEnd, false, message, percent, warningTitle);
+    renderSchedule(closestSchedule, selected, plannedMinutes, windowStart, windowEnd, false, message, percent, warningTitle);
   }
 
   function renderError(message) {
@@ -270,7 +287,7 @@
       <p class="instruction">${t("instruction")}</p>
       <div class="warning-box" id="warning-box"${exact ? " hidden" : ""}><strong id="warning-title"></strong><span id="warning-message"></span></div>
       <div class="timeline" aria-label="${t("expectedTiming")}"><div class="timeline-track" id="timeline-track"><span></span></div><div class="timeline-labels"><span><small>${t("washStarts")}</small><strong id="wash-start"></strong></span><span><small>${t("washEnds")}</small><strong id="wash-end"></strong></span></div></div>
-      <dl class="summary-list"><div><dt>${t("programLabel")}</dt><dd id="summary-programme"></dd></div><div><dt>${t("plannedDuration")}</dt><dd id="summary-duration"></dd></div><div><dt>${t(suggestionActive ? "envelopeSummary" : "windowSummary")}</dt><dd id="summary-window"></dd></div></dl>
+      <dl class="summary-list"><div><dt>${t("programLabel")}</dt><dd id="summary-programme"></dd></div><div><dt>${t("plannedDuration")}</dt><dd id="summary-duration"></dd></div><div><dt>${t(suggestionActive ? "marketBandSummary" : "windowSummary")}</dt><dd id="summary-window"></dd></div></dl>
       <button class="refresh-button" id="refresh-result" type="button">${t("refresh")}</button>`;
     $("#delay-number").textContent = schedule.delayHours;
     $("#delay-inline").textContent = `${schedule.delayHours}h`;
@@ -294,8 +311,9 @@
 
   async function useNow() {
     const shouldReoptimise = suggestionActive;
+    const dayOffset = lastSuggestionDayOffset;
     $("#planning-time").value = inputValue(new Date());
-    if (shouldReoptimise) await suggestMarketWindow(); else calculate();
+    if (shouldReoptimise) await suggestMarketWindow(dayOffset); else calculate();
   }
 
   fillProgrammes();
@@ -315,6 +333,7 @@
     updatePreferenceControls();
     updateSafetyOptions();
     updateWindowContext();
+    updateMarketButtons();
     if (suggestionActive) renderMarketSuccess(); else setMarketStatus(t("marketDefault"));
     calculate();
   });
@@ -327,7 +346,7 @@
   });
   $("#use-now").addEventListener("click", useNow);
   $("#set-preferred-programme").addEventListener("click", savePreferredProgram);
-  marketButton.addEventListener("click", suggestMarketWindow);
+  marketButtons.forEach((button) => button.addEventListener("click", () => suggestMarketWindow(Number(button.dataset.suggestDay))));
   programme.addEventListener("change", () => { invalidateSuggestion(); updateMeasuredField(); updatePreferenceControls(); calculate(); });
   measured.addEventListener("input", () => {
     invalidateSuggestion();

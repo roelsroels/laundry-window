@@ -17,6 +17,9 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /data-slug="roels"/);
   assert.match(html, /data-text="Buy me a beer"/);
   assert.match(html, /Utilitarian Spot/);
+  assert.match(html, /data-suggest-day="0"/);
+  assert.match(html, /data-suggest-day="1"/);
+  assert.match(html, /https:\/\/github\.com\/roelsroels\/laundry-window/);
   assert.match(html, /🇬🇧/);
   assert.doesNotMatch(html, /🇺🇸/);
 });
@@ -48,6 +51,26 @@ test("the market helper chooses the cheapest complete valid schedule", async () 
   assert.equal(best.end, new Date("2026-01-01T05:00:00Z").getTime());
   assert.equal(best.average, 10);
   assert.equal(market.findCheapestSchedule(points.slice(0, 4), new Date(start), 60), null);
+
+  const localPlanning = new Date(2026, 0, 1, 13, 39);
+  const localStart = new Date(2026, 0, 1, 0, 0).getTime();
+  const dayPoints = Array.from({ length: 192 }, (_, index) => {
+    const time = new Date(localStart + index * 15 * 60000);
+    const day = time.getDate() === localPlanning.getDate() ? 0 : 1;
+    const decimalHour = time.getHours() + time.getMinutes() / 60;
+    let value = 100;
+    if (day === 0 && decimalHour >= 12 && decimalHour < 15.75) value = decimalHour >= 14 && decimalHour < 14.25 ? -8 : 2;
+    if (day === 1 && decimalHour >= 3 && decimalHour < 5) value = 10;
+    return { timestamp: time.toISOString(), value };
+  });
+  const lowToday = market.findLowPriceWindow(dayPoints, localPlanning, 0);
+  assert.equal(lowToday.start, new Date(2026, 0, 1, 12, 0).getTime());
+  assert.equal(lowToday.end, new Date(2026, 0, 1, 15, 45).getTime());
+  const todayBest = market.findCheapestSchedule(dayPoints, localPlanning, 78, 0);
+  const tomorrowBest = market.findCheapestSchedule(dayPoints, localPlanning, 78, 1);
+  assert.equal(new Date(todayBest.start).getDate(), 1);
+  assert.equal(new Date(tomorrowBest.start).getDate(), 2);
+  assert.equal(market.hasPricesForDay(dayPoints, localPlanning, 1), true);
 
   const schedule = { start, end: start + 60 * 60000 };
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end, 60), { beforePercent: 0, afterPercent: 0 });
@@ -96,9 +119,11 @@ test("the interface supports remembered English and Dutch translations", async (
   assert.match(script, /laundry-language/);
   assert.match(script, /Set the delay/);
   assert.match(script, /Stel de tijd in/);
-  assert.match(script, /marketEnvelope/);
+  assert.match(script, /marketWindow/);
   assert.match(script, /exact 15-minute market intervals/);
-  assert.match(script, /exact marktkwartier/);
+  assert.match(script, /exacte marktkwartieren/);
+  assert.match(script, /raw wholesale market price/);
+  assert.match(script, /kale beursprijs/);
 });
 
 test("the nginx example includes safe static defaults", async () => {
