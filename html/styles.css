@@ -56,6 +56,22 @@ input, select { width: 100%; min-height: 50px; color: var(--ink); background: #f
 input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(23,78,62,.12); }
 .programme-select { display: block; }
 .programme-select select { min-height: 58px; font-weight: 650; font-size: 15px; }
+.programme-preference { margin-top: 9px; display: flex; align-items: center; justify-content: space-between; gap: 14px; color: var(--muted); font-size: 10px; line-height: 1.4; }
+.programme-preference button { flex: 0 0 auto; padding: 5px 0; border: 0; color: var(--green); background: transparent; font-size: 10px; font-weight: 750; }
+.programme-preference button:disabled { color: var(--muted); cursor: default; }
+.market-suggestion { margin-top: 18px; padding: 18px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px 18px; border: 1px solid rgba(23,78,62,.18); border-radius: 14px; background: #edf4e8; }
+.market-heading { display: grid; gap: 4px; }
+.market-heading > span { color: var(--green); font: 700 9px/1 var(--font-geist-mono), monospace; letter-spacing: .12em; }
+.market-heading strong { font-size: 15px; }
+.market-heading p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
+.market-suggestion button { min-height: 43px; padding: 0 15px; border: 0; border-radius: 10px; color: white; background: var(--green); font-size: 11px; font-weight: 750; }
+.market-suggestion button:hover { background: #0f3e31; }
+.market-suggestion button:disabled { cursor: wait; opacity: .65; }
+.market-status { grid-column: 1 / -1; margin: 3px 0 0; padding-top: 10px; border-top: 1px solid rgba(23,78,62,.14); color: #53655e; font-size: 11px; line-height: 1.45; }
+.market-status[data-state="success"] { color: var(--green); font-weight: 650; }
+.market-status[data-state="error"] { color: #8b3c29; }
+.market-suggestion > small { grid-column: 1 / -1; color: var(--muted); font-size: 9px; line-height: 1.4; }
+.market-suggestion a { color: var(--green); font-weight: 700; }
 .advanced-toggle { width: 100%; margin-top: 28px; padding: 17px 0 5px; display: flex; justify-content: space-between; color: var(--ink); background: transparent; border: 0; border-top: 1px solid var(--line); font-size: 13px; font-weight: 700; text-align: left; }
 .advanced-toggle span { font-size: 20px; line-height: .7; font-weight: 400; }
 .advanced-panel { margin-top: 14px; padding: 22px; border-radius: 14px; background: #eeece4; display: grid; gap: 20px; }
@@ -157,6 +173,8 @@ footer { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 
   .site-header { padding: 18px 0; }.model-chip { display: none; }
   .hero { min-height: auto; grid-template-columns: 1fr; padding: 46px 0; }.hero h1 { font-size: 58px; }.intro { font-size: 16px; margin-top: 24px; }.dial-art { display: none; }
   .planner { border-radius: 17px; margin-bottom: 70px; }.input-panel, .result-panel { padding: 27px 22px; }.field-grid { grid-template-columns: 1fr; }.programme-heading { margin-top: 30px; }
+  .programme-preference { align-items: flex-start; }
+  .market-suggestion { grid-template-columns: 1fr; }.market-suggestion button { width: 100%; }.market-status, .market-suggestion > small { grid-column: 1; }
   .result-panel { min-height: 600px; }.delay-readout strong { font-size: 110px; }
   .how-it-works { margin-bottom: 60px; }.how-it-works h2 { font-size: 38px; }
   .reference-grid { grid-template-columns: 1fr; }.reference-grid div:nth-child(n) { padding-left: 0; border-left: 0; }

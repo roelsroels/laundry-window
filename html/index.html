@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#174e3e">
   <title>Laundry Window · Samsung Delay End calculator</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="market-prices.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -37,18 +38,33 @@
       <form class="input-panel" id="planner-form">
         <div class="step-heading">
           <span>1</span>
-          <div><h2>Cheap energy window</h2><p>Use the exact date if the window crosses midnight.</p></div>
+          <div><h2>Washing programme</h2><p>Official baseline time, with your preferred programme remembered locally.</p></div>
+        </div>
+        <label class="programme-select"><span>Programme</span><select id="programme"></select></label>
+        <div class="programme-preference">
+          <span id="preferred-programme-label"></span>
+          <button id="set-preferred-programme" type="button">Make selected preferred</button>
+        </div>
+
+        <div class="step-heading programme-heading">
+          <span>2</span>
+          <div><h2>Cheap energy window</h2><p>Enter it yourself or ask for the cheapest available fit.</p></div>
         </div>
         <div class="field-grid">
           <label><span>Starts</span><input id="cheap-start" type="datetime-local" required></label>
           <label><span>Ends</span><input id="cheap-end" type="datetime-local" required></label>
         </div>
 
-        <div class="step-heading programme-heading">
-          <span>2</span>
-          <div><h2>Washing programme</h2><p>Official baseline time from Samsung’s manual.</p></div>
+        <div class="market-suggestion">
+          <div class="market-heading">
+            <span>DUTCH DAY-AHEAD PRICES</span>
+            <strong>Find the cheapest fit</strong>
+            <p>Compares every valid Delay End setting for this programme.</p>
+          </div>
+          <button id="suggest-market-window" type="button">Suggest window</button>
+          <p class="market-status" id="market-status" aria-live="polite">Fetched only when you ask. Market price excludes tax and supplier fees.</p>
+          <small>Source: <a href="https://spot.utilitarian.io/developer/" rel="noreferrer">Utilitarian Spot</a> using <a href="https://transparency.entsoe.eu/" rel="noreferrer">ENTSO-E</a> data (CC BY 4.0).</small>
         </div>
-        <label class="programme-select"><span>Programme</span><select id="programme"></select></label>
 
         <button class="advanced-toggle" id="advanced-toggle" type="button" aria-expanded="false">Fine-tune <span aria-hidden="true">+</span></button>
         <div class="advanced-panel" id="advanced-panel" hidden>

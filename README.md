@@ -4,10 +4,10 @@
 
 A tiny, dependency-free planner for the **Samsung WF702Y4BKWQ/EN** washing machine. Enter a cheap electricity-price window and a washing programme; Laundry Window calculates the whole-hour value to select with the machine's **Delay End / Uitgesteld einde** button.
 
-The calculator runs entirely in the browser. It has no analytics, cookies, server-side code, build step, or package manager. The footer loads the optional Buy Me a Coffee button and its Bree Serif font from third-party CDNs. All publicly served files live under [`html/`](html/); repository documentation, tests, screenshots, and deployment configuration stay outside the web root.
+The calculator runs entirely in the browser. It has no analytics, cookies, server-side code, build step, or package manager. On request, it downloads the latest Dutch day-ahead market-price feed to suggest the cheapest available schedule. The footer loads the optional Buy Me a Coffee button and its Bree Serif font from third-party CDNs. All publicly served files live under [`html/`](html/); repository documentation, tests, screenshots, and deployment configuration stay outside the web root.
 
 > [!NOTE]
-> The footer support button loads JavaScript from `cdnjs.buymeacoffee.com`, loads a font from Google Fonts, and links to `buymeacoffee.com/roels`. The calculator itself does not send your planning data anywhere.
+> The price button fetches the same public Netherlands feed URL for every visitor; programme, timing, and planning values are never added to that request or sent elsewhere. As with any web request, the price provider receives ordinary connection metadata such as the visitor's IP address. The footer support button separately loads JavaScript from `cdnjs.buymeacoffee.com`, loads a font from Google Fonts, and links to `buymeacoffee.com/roels`.
 
 ## Screenshots
 
@@ -26,7 +26,17 @@ The calculator runs entirely in the browser. It has no analytics, cookies, serve
 - A configurable safety margin around the cheap-price window
 - Prewash, which Samsung documents as adding approximately 18 minutes
 - Per-programme measured-time overrides, stored only in the current browser
+- A preferred programme, initially **Dark garments**, stored only in the current browser
+- An optional live suggestion based on published Dutch day-ahead prices
 - A closest-fit suggestion when no setting keeps the complete wash inside the window
+
+## Live market-price suggestions
+
+The **Suggest window** button downloads today’s—and tomorrow’s, once published—Netherlands day-ahead prices from [Utilitarian Spot](https://spot.utilitarian.io/developer/). Its values originate from the ENTSO-E Transparency Platform and are supplied in `€/MWh` at the market’s available resolution, currently 15 minutes for the Netherlands.
+
+Laundry Window evaluates the real duration of the selected programme against every whole-hour Delay End choice from 3–19 hours. It recommends the complete cycle with the lowest duration-weighted average market price, then fills the manual window fields so the normal calculator remains the source of the displayed washer setting.
+
+The displayed figure is the wholesale market component, converted to cents per kWh. It excludes energy tax, VAT, supplier markups, and other contract costs. Fixed additions do not change which interval is cheapest, but users should still treat the result as a planning suggestion rather than an exact retail-price quote. The external feed is best-effort; manual entry remains available if it is late or unavailable.
 
 ## Compatibility
 
@@ -98,7 +108,8 @@ Samsung notes that actual cycle time can vary with water pressure and temperatur
 ├── html/                    # Complete and only public web root
 │   ├── index.html           # Website structure
 │   ├── styles.css           # Responsive design
-│   └── app.js               # Programme data and calculation
+│   ├── app.js               # Programme data and Delay End calculation
+│   └── market-prices.js     # Browser-only market-price optimiser
 ├── nginx/                   # Example nginx vhost
 ├── docs/SOURCES.md          # Appliance documentation and caveats
 ├── screenshots/             # Real desktop and mobile captures
