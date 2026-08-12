@@ -92,6 +92,21 @@ test("the market helper chooses the cheapest complete valid schedule", async () 
   assert.equal(boschBest.start, boschPointsStart + 150 * 60000);
   assert.equal(market.findCheapestSchedule(boschPoints, new Date(boschPointsStart), 150, 0, { min: 1, max: 2 }).delayHours, 0);
 
+  const fullFitPlanning = new Date("2026-01-01T00:00:00Z");
+  const fullFitStart = fullFitPlanning.getTime();
+  const fullFitPoints = Array.from({ length: 96 }, (_, index) => {
+    const timestamp = fullFitStart + index * 15 * 60000;
+    const decimalHour = index / 4;
+    return { timestamp: new Date(timestamp).toISOString(), value: decimalHour >= 13.75 && decimalHour < 15 ? 1 : 20 };
+  });
+  const preferredWindow = { start: fullFitStart + 12.5 * 3600000, end: fullFitStart + 14.75 * 3600000, marginMinutes: 0 };
+  const rawCheapest = market.findCheapestSchedule(fullFitPoints, fullFitPlanning, 75, 0, { min: 1, max: 24 });
+  const fullFitCheapest = market.findCheapestSchedule(fullFitPoints, fullFitPlanning, 75, 0, { min: 1, max: 24 }, preferredWindow);
+  assert.equal(rawCheapest.delayHours, 15, "the raw cheapest cycle may extend beyond the low-price band");
+  assert.equal(fullFitCheapest.delayHours, 14, "a complete selectable fit must beat a cheaper partial fit");
+  assert.equal(fullFitCheapest.start, fullFitStart + 12.75 * 3600000);
+  assert.equal(fullFitCheapest.end, fullFitStart + 14 * 3600000);
+
   const schedule = { start, end: start + 60 * 60000 };
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end, 60), { beforePercent: 0, afterPercent: 0 });
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end - 15 * 60000, 60), { beforePercent: 0, afterPercent: 25 });
