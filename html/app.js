@@ -68,6 +68,10 @@
     return new Intl.DateTimeFormat(i18n.language === "nl" ? "nl-NL" : "en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" }).format(date);
   }
 
+  function timeText(date) {
+    return new Intl.DateTimeFormat(i18n.language === "nl" ? "nl-NL" : "en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
+  }
+
   function programName(item) {
     return t(item.nameKey, { minutes: item.minutes });
   }
@@ -166,7 +170,16 @@
     const { best, cheapWindow, availableUntil, dayOffset } = lastMarketResult;
     const overlapMinutes = overlap(best.start, best.end, cheapWindow.start, cheapWindow.end);
     const percent = Math.round(overlapMinutes / cycleMinutes() * 100);
-    setMarketStatus(t("marketSuccess", { day: t(dayOffset ? "tomorrow" : "today"), program: programName(currentProgram()), start: momentText(new Date(best.start)), end: momentText(new Date(best.end)), lowStart: momentText(new Date(cheapWindow.start)), lowEnd: momentText(new Date(cheapWindow.end)), percent, price: marketPriceText(best.average), available: momentText(availableUntil) }), "success");
+    const margin = Number($("#safety-margin").value);
+    const latestStart = new Date(marketPrices.latestSafeStart(cheapWindow.end, cycleMinutes(), margin));
+    const firstSafeStart = new Date(cheapWindow.start + margin * minute);
+    let deadline = "";
+    if (dayOffset === 0 && latestStart >= firstSafeStart) {
+      deadline = new Date($("#planning-time").value) <= latestStart
+        ? t("startDeadline", { deadline: timeText(latestStart), margin })
+        : t("startDeadlinePassed", { deadline: timeText(latestStart), margin });
+    }
+    setMarketStatus(t("marketSuccess", { day: t(dayOffset ? "tomorrow" : "today"), program: programName(currentProgram()), start: momentText(new Date(best.start)), end: momentText(new Date(best.end)), lowStart: momentText(new Date(cheapWindow.start)), lowEnd: momentText(new Date(cheapWindow.end)), percent, price: marketPriceText(best.average), available: momentText(availableUntil), deadline }), "success");
   }
 
   function updateMarketButtons(activeButton = null) {
@@ -233,10 +246,11 @@
     if ([planning, windowStart, windowEnd].some((date) => Number.isNaN(date.getTime()))) return renderError(t("invalidDate"));
     if (windowEnd <= windowStart) return renderError(t("invalidWindow"));
 
-    const schedules = Array.from({ length: 17 }, (_, index) => index + 3).map((delayHours) => {
+    const schedules = [0, ...Array.from({ length: 17 }, (_, index) => index + 3)].map((delayHours) => {
       const end = new Date(planning.getTime() + delayHours * hour);
-      const start = new Date(end.getTime() - plannedMinutes * minute);
-      return { delayHours, start, end, overlapMinutes: overlap(start, end, windowStart, windowEnd) };
+      const start = delayHours === 0 ? planning : new Date(end.getTime() - plannedMinutes * minute);
+      const actualEnd = delayHours === 0 ? new Date(planning.getTime() + plannedMinutes * minute) : end;
+      return { delayHours, start, end: actualEnd, overlapMinutes: overlap(start, actualEnd, windowStart, windowEnd) };
     });
 
     const protectedStart = new Date(windowStart.getTime() + margin * minute);
@@ -282,15 +296,17 @@
   function renderSchedule(schedule, selected, cycleMinutes, windowStart, windowEnd, exact, message = "", percent = 0, warningTitle = "") {
     $("#result").classList.toggle("result-warning", !exact);
     $("#result-content").innerHTML = `
-      <div class="delay-readout"><strong id="delay-number"></strong><span>h</span></div>
-      <h2>${i18n.language === "nl" ? "Uitgesteld einde" : "Delay End"}</h2>
-      <p class="instruction">${t("instruction")}</p>
+      <div class="delay-readout${schedule.delayHours === 0 ? " immediate-readout" : ""}"><strong id="delay-number"></strong><span id="delay-unit">h</span></div>
+      <h2>${schedule.delayHours === 0 ? t("startNowHeading") : (i18n.language === "nl" ? "Uitgesteld einde" : "Delay End")}</h2>
+      <p class="instruction">${t(schedule.delayHours === 0 ? "instructionNow" : "instruction")}</p>
       <div class="warning-box" id="warning-box"${exact ? " hidden" : ""}><strong id="warning-title"></strong><span id="warning-message"></span></div>
       <div class="timeline" aria-label="${t("expectedTiming")}"><div class="timeline-track" id="timeline-track"><span></span></div><div class="timeline-labels"><span><small>${t("washStarts")}</small><strong id="wash-start"></strong></span><span><small>${t("washEnds")}</small><strong id="wash-end"></strong></span></div></div>
       <dl class="summary-list"><div><dt>${t("programLabel")}</dt><dd id="summary-programme"></dd></div><div><dt>${t("plannedDuration")}</dt><dd id="summary-duration"></dd></div><div><dt>${t(suggestionActive ? "marketBandSummary" : "windowSummary")}</dt><dd id="summary-window"></dd></div></dl>
       <button class="refresh-button" id="refresh-result" type="button">${t("refresh")}</button>`;
-    $("#delay-number").textContent = schedule.delayHours;
-    $("#delay-inline").textContent = `${schedule.delayHours}h`;
+    $("#delay-number").textContent = schedule.delayHours === 0 ? t("nowReadout") : schedule.delayHours;
+    $("#delay-unit").hidden = schedule.delayHours === 0;
+    const delayInline = $("#delay-inline");
+    if (delayInline) delayInline.textContent = `${schedule.delayHours}h`;
     $("#wash-start").textContent = momentText(schedule.start);
     $("#wash-end").textContent = momentText(schedule.end);
     $("#summary-programme").textContent = programName(selected);

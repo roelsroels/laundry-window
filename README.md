@@ -19,7 +19,7 @@ The calculator runs entirely in the browser. It has no analytics, cookies, serve
 
 ## What it handles
 
-- The machine's real Delay End range: **3–19 hours in whole-hour increments**
+- Immediate Start now recommendations plus the machine's real Delay End range: **3–19 hours in whole-hour increments**
 - Windows that cross midnight
 - All eleven dial programmes listed in Samsung's manual
 - Quick wash selections from 15–60 minutes
@@ -36,7 +36,7 @@ The calculator runs entirely in the browser. It has no analytics, cookies, serve
 
 The **Suggest today** and **Suggest tomorrow** buttons download Netherlands day-ahead prices from [Utilitarian Spot](https://spot.utilitarian.io/developer/). Tomorrow is offered as soon as both its prices and a valid 3–19 hour machine setting are available. The values originate from the ENTSO-E Transparency Platform and are supplied in `€/MWh` at the market’s available resolution, currently 15 minutes for the Netherlands.
 
-Laundry Window evaluates the real duration of the selected programme against every whole-hour Delay End choice from 3–19 hours. It recommends the reachable cycle with the lowest duration-weighted average market price.
+Laundry Window evaluates the real duration of the selected programme against immediate Start now and every whole-hour Delay End choice from 3–19 hours. It recommends the reachable cycle with the lowest duration-weighted average market price. For today, it also shows the latest safe-start time that keeps the full cycle and selected safety margin inside the low-price band.
 
 The green period remains separate from that machine-constrained recommendation. It is the longest contiguous low-price band for the chosen day, aligned to exact 15-minute intervals; its cutoff is `max(€5/MWh, the day’s minimum + €10/MWh)`. The start/end fields contain this actual band—not the proposed wash itself. If the best still-selectable wash extends beyond it, the timeline shows that portion in orange and reports the percentage that remains inside. This prevents a late request from making an already-missed cheap period look 100% reachable.
 

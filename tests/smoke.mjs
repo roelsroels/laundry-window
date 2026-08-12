@@ -68,9 +68,13 @@ test("the market helper chooses the cheapest complete valid schedule", async () 
   assert.equal(lowToday.end, new Date(2026, 0, 1, 15, 45).getTime());
   const todayBest = market.findCheapestSchedule(dayPoints, localPlanning, 78, 0);
   const tomorrowBest = market.findCheapestSchedule(dayPoints, localPlanning, 78, 1);
+  assert.equal(todayBest.delayHours, 0);
+  assert.equal(todayBest.start, localPlanning.getTime());
+  assert.equal(todayBest.end, localPlanning.getTime() + 78 * 60000);
   assert.equal(new Date(todayBest.start).getDate(), 1);
   assert.equal(new Date(tomorrowBest.start).getDate(), 2);
   assert.equal(market.hasPricesForDay(dayPoints, localPlanning, 1), true);
+  assert.equal(market.latestSafeStart(new Date(2026, 0, 1, 15, 45), 78, 15), new Date(2026, 0, 1, 14, 12).getTime());
 
   const schedule = { start, end: start + 60 * 60000 };
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end, 60), { beforePercent: 0, afterPercent: 0 });
@@ -110,6 +114,9 @@ test("the official programme durations remain present", async () => {
   assert.match(script, /shouldReoptimise/);
   assert.match(script, /safetyTitle/);
   assert.match(script, /marketPrices\.timelineCoverage/);
+  assert.match(script, /marketPrices\.latestSafeStart/);
+  assert.match(script, /delayHours === 0/);
+  assert.match(script, /instructionNow/);
   assert.match(script, /--outside-before/);
   assert.match(script, /--inside-until/);
 });

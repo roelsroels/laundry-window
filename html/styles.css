@@ -102,6 +102,8 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .delay-readout { margin: 8px 0 0; display: flex; align-items: flex-start; letter-spacing: -.07em; }
 .delay-readout strong { font-size: 126px; line-height: .78; font-weight: 670; }
 .delay-readout span { margin: 4px 0 0 8px; font: 500 35px/1 var(--font-geist-mono), monospace; }
+.delay-readout.immediate-readout { margin-top: 18px; letter-spacing: -.04em; }
+.delay-readout.immediate-readout strong { font-size: 70px; line-height: .9; }
 .result-panel > h2 { margin: 6px 0 17px; font-size: 28px; letter-spacing: -.04em; }
 .instruction { margin: 0; max-width: 420px; color: rgba(255,255,255,.75); font-size: 15px; line-height: 1.5; }
 .instruction strong { color: white; }
