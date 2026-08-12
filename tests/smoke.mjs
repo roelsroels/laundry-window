@@ -12,7 +12,9 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /src="market-prices\.js"/);
   assert.match(html, /src="app\.js"/);
   assert.match(html, /Samsung WF702Y4BKWQ\/EN/);
-  assert.match(html, /Built for one Samsung family/);
+  assert.match(html, /Bosch WAE284A7NL\/12/);
+  assert.match(html, /id="machine-profile"/);
+  assert.match(html, /Two model profiles/);
   assert.match(html, /src="https:\/\/cdnjs\.buymeacoffee\.com\/1\.0\.0\/button\.prod\.min\.js"/);
   assert.match(html, /data-slug="roels"/);
   assert.match(html, /data-text="Buy me a beer"/);
@@ -80,6 +82,16 @@ test("the market helper chooses the cheapest complete valid schedule", async () 
   assert.equal(market.hasPricesForDay(dayPoints, localPlanning, 1), true);
   assert.equal(market.latestSafeStart(new Date(2026, 0, 1, 15, 45), 78, 15), new Date(2026, 0, 1, 14, 12).getTime());
 
+  const boschPointsStart = new Date(2026, 0, 1, 10, 0).getTime();
+  const boschPoints = Array.from({ length: 120 }, (_, index) => ({
+    timestamp: new Date(boschPointsStart + index * 15 * 60000).toISOString(),
+    value: index >= 10 && index < 20 ? 5 : 50
+  }));
+  const boschBest = market.findCheapestSchedule(boschPoints, new Date(boschPointsStart), 150, 0, { min: 1, max: 24 });
+  assert.equal(boschBest.delayHours, 5);
+  assert.equal(boschBest.start, boschPointsStart + 150 * 60000);
+  assert.equal(market.findCheapestSchedule(boschPoints, new Date(boschPointsStart), 150, 0, { min: 1, max: 2 }).delayHours, 0);
+
   const schedule = { start, end: start + 60 * 60000 };
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end, 60), { beforePercent: 0, afterPercent: 0 });
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end - 15 * 60000, 60), { beforePercent: 0, afterPercent: 25 });
@@ -93,7 +105,7 @@ test("repository screenshots are present", async () => {
   ]);
 });
 
-test("the official programme durations remain present", async () => {
+test("the Samsung and Bosch programme profiles remain present", async () => {
   const script = await readFile(new URL("html/app.js", root), "utf8");
   const expected = {
     cotton: 133,
@@ -111,10 +123,28 @@ test("the official programme durations remain present", async () => {
   for (const [id, minutes] of Object.entries(expected)) {
     assert.match(script, new RegExp(`id: "${id}"[^\\n]+minutes: ${minutes}`));
   }
-  assert.match(script, /index \+ 3/);
-  assert.match(script, /length: 17/);
-  assert.match(script, /preferredProgramId = "dark"/);
-  assert.match(script, /washer-preferred-program/);
+  const boschExpected = {
+    "cotton-20": 150,
+    "cotton-30": 150,
+    "cotton-40": 150,
+    "cotton-60": 165,
+    "cotton-90": 165,
+    "easy-care-40": 105,
+    "quick-mix-40": 75,
+    "delicates-30": 45,
+    "wool-30": 45,
+    "super-quick-15": 15,
+  };
+  for (const [id, minutes] of Object.entries(boschExpected)) {
+    assert.match(script, new RegExp(`id: "${id}"[^\\n]+minutes: ${minutes}`));
+  }
+  assert.match(script, /timerRange: \{ min: 3, max: 19 \}/);
+  assert.match(script, /timerRange: \{ min: 1, max: 24 \}/);
+  assert.match(script, /defaultProgram: "dark"/);
+  assert.match(script, /defaultProgram: "cotton-40"/);
+  assert.match(script, /washer-machine-profile/);
+  assert.match(script, /washer-preferred-programs/);
+  assert.match(script, /washer-program-overrides-v2/);
   assert.match(script, /shouldReoptimise/);
   assert.match(script, /safetyTitle/);
   assert.match(script, /marketPrices\.timelineCoverage/);
@@ -128,8 +158,11 @@ test("the official programme durations remain present", async () => {
 test("the interface supports remembered English and Dutch translations", async () => {
   const script = await readFile(new URL("html/i18n.js", root), "utf8");
   assert.match(script, /laundry-language/);
-  assert.match(script, /Set the delay/);
+  assert.match(script, /Set the time/);
   assert.match(script, /Stel de tijd in/);
+  assert.match(script, /Bosch WAE284A7NL\/12/);
+  assert.match(script, /Klaar in/);
+  assert.match(script, /Ready in/);
   assert.match(script, /marketWindow/);
   assert.match(script, /exact 15-minute market intervals/);
   assert.match(script, /exacte marktkwartieren/);

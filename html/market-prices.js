@@ -97,19 +97,23 @@
     return best ? { start: best.start, end: best.end, average: best.weighted / best.duration, threshold } : null;
   }
 
-  function findCheapestSchedule(rawPoints, planningDate, cycleMinutes, dayOffset = null) {
+  function findCheapestSchedule(rawPoints, planningDate, cycleMinutes, dayOffset = null, timerRange = { min: 3, max: 19 }) {
     const planning = new Date(planningDate).getTime();
     if (!Number.isFinite(planning) || !Number.isFinite(cycleMinutes) || cycleMinutes <= 0) return null;
 
     const intervals = normalisePricePoints(rawPoints);
     const bounds = dayOffset === null ? null : localDayBounds(planningDate, dayOffset);
-    const delayChoices = dayOffset === 0 ? [0, ...Array.from({ length: 17 }, (_, index) => index + 3)] : Array.from({ length: 17 }, (_, index) => index + 3);
+    const minDelay = Number(timerRange?.min);
+    const maxDelay = Number(timerRange?.max);
+    if (!Number.isInteger(minDelay) || !Number.isInteger(maxDelay) || minDelay < 1 || maxDelay < minDelay) return null;
+    const wholeHourChoices = Array.from({ length: maxDelay - minDelay + 1 }, (_, index) => index + minDelay);
+    const delayChoices = dayOffset === 0 ? [0, ...wholeHourChoices] : wholeHourChoices;
     const candidates = delayChoices.map((delayHours) => {
       const end = planning + delayHours * hour;
       const start = delayHours === 0 ? planning : end - cycleMinutes * minute;
       const actualEnd = delayHours === 0 ? planning + cycleMinutes * minute : end;
       return { delayHours, start, end: actualEnd, average: averagePrice(start, actualEnd, intervals) };
-    }).filter((candidate) => candidate.average !== null && (!bounds || (candidate.start >= bounds.start && candidate.end <= bounds.end)));
+    }).filter((candidate) => candidate.average !== null && (candidate.delayHours === 0 || candidate.start >= planning) && (!bounds || (candidate.start >= bounds.start && candidate.end <= bounds.end)));
 
     candidates.sort((a, b) => a.average - b.average || a.delayHours - b.delayHours);
     return candidates[0] || null;
