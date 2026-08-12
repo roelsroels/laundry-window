@@ -111,7 +111,8 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .timeline-track { height: 4px; background: rgba(255,255,255,.25); border-radius: 5px; position: relative; }
 .timeline-track::before, .timeline-track::after { content: ""; position: absolute; top: -4px; width: 12px; height: 12px; background: var(--lime); border-radius: 50%; }
 .timeline-track::before { left: 0; }.timeline-track::after { right: 0; }
-.timeline-track span { position: absolute; left: 8px; right: 8px; top: 1px; height: 2px; background: var(--lime); }
+.timeline-track.outside-start::before, .timeline-track.outside-end::after { background: var(--orange); }
+.timeline-track span { position: absolute; left: 8px; right: 8px; top: 1px; height: 2px; background: linear-gradient(to right, var(--orange) 0 var(--outside-before, 0%), var(--lime) var(--outside-before, 0%) var(--inside-until, 100%), var(--orange) var(--inside-until, 100%) 100%); }
 .timeline-labels { display: flex; justify-content: space-between; margin-top: 14px; }
 .timeline-labels > span { display: grid; gap: 4px; }
 .timeline-labels > span:last-child { text-align: right; }

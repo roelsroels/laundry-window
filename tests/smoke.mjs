@@ -17,6 +17,8 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /data-slug="roels"/);
   assert.match(html, /data-text="Buy me a beer"/);
   assert.match(html, /Utilitarian Spot/);
+  assert.match(html, /🇬🇧/);
+  assert.doesNotMatch(html, /🇺🇸/);
 });
 
 test("only site assets live in the public web root", async () => {
@@ -46,6 +48,11 @@ test("the market helper chooses the cheapest complete valid schedule", async () 
   assert.equal(best.end, new Date("2026-01-01T05:00:00Z").getTime());
   assert.equal(best.average, 10);
   assert.equal(market.findCheapestSchedule(points.slice(0, 4), new Date(start), 60), null);
+
+  const schedule = { start, end: start + 60 * 60000 };
+  assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end, 60), { beforePercent: 0, afterPercent: 0 });
+  assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end - 15 * 60000, 60), { beforePercent: 0, afterPercent: 25 });
+  assert.deepEqual(market.timelineCoverage(schedule, start + 15 * 60000, schedule.end, 60), { beforePercent: 25, afterPercent: 0 });
 });
 
 test("repository screenshots are present", async () => {
@@ -79,6 +86,9 @@ test("the official programme durations remain present", async () => {
   assert.match(script, /washer-preferred-program/);
   assert.match(script, /shouldReoptimise/);
   assert.match(script, /safetyTitle/);
+  assert.match(script, /marketPrices\.timelineCoverage/);
+  assert.match(script, /--outside-before/);
+  assert.match(script, /--inside-until/);
 });
 
 test("the interface supports remembered English and Dutch translations", async () => {

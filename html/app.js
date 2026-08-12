@@ -269,7 +269,7 @@
       <h2>${i18n.language === "nl" ? "Uitgesteld einde" : "Delay End"}</h2>
       <p class="instruction">${t("instruction")}</p>
       <div class="warning-box" id="warning-box"${exact ? " hidden" : ""}><strong id="warning-title"></strong><span id="warning-message"></span></div>
-      <div class="timeline" aria-label="${t("expectedTiming")}"><div class="timeline-track"><span></span></div><div class="timeline-labels"><span><small>${t("washStarts")}</small><strong id="wash-start"></strong></span><span><small>${t("washEnds")}</small><strong id="wash-end"></strong></span></div></div>
+      <div class="timeline" aria-label="${t("expectedTiming")}"><div class="timeline-track" id="timeline-track"><span></span></div><div class="timeline-labels"><span><small>${t("washStarts")}</small><strong id="wash-start"></strong></span><span><small>${t("washEnds")}</small><strong id="wash-end"></strong></span></div></div>
       <dl class="summary-list"><div><dt>${t("programLabel")}</dt><dd id="summary-programme"></dd></div><div><dt>${t("plannedDuration")}</dt><dd id="summary-duration"></dd></div><div><dt>${t(suggestionActive ? "envelopeSummary" : "windowSummary")}</dt><dd id="summary-window"></dd></div></dl>
       <button class="refresh-button" id="refresh-result" type="button">${t("refresh")}</button>`;
     $("#delay-number").textContent = schedule.delayHours;
@@ -279,6 +279,12 @@
     $("#summary-programme").textContent = programName(selected);
     $("#summary-duration").textContent = durationText(cycleMinutes);
     $("#summary-window").textContent = `${momentText(windowStart)} – ${momentText(windowEnd)}`;
+    const coverage = marketPrices.timelineCoverage(schedule, windowStart, windowEnd, cycleMinutes);
+    const track = $("#timeline-track");
+    track.style.setProperty("--outside-before", `${coverage.beforePercent}%`);
+    track.style.setProperty("--inside-until", `${100 - coverage.afterPercent}%`);
+    track.classList.toggle("outside-start", coverage.beforePercent > 0);
+    track.classList.toggle("outside-end", coverage.afterPercent > 0);
     if (!exact) {
       $("#warning-title").textContent = warningTitle || t("closestTitle", { percent });
       $("#warning-message").textContent = message;

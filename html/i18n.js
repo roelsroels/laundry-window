@@ -4,7 +4,7 @@
   const translations = {
     en: {
       metaDescription: "Calculate the Delay End setting for a Samsung WF702Y4BKWQ/EN washing machine.",
-      homeLabel: "Laundry Window home", languageLabel: "Language", englishLabel: "English", dutchLabel: "Dutch",
+      homeLabel: "Laundry Window home", languageLabel: "Language", englishLabel: "English (UK)", dutchLabel: "Dutch",
       heroEyebrow: "CHEAP-ENERGY WASH PLANNER", heroTitle: "Set the delay.<br>Skip the maths.", heroIntro: "Tell me when electricity is cheap and what you’re washing. I’ll tell you exactly what to select on <strong>Delay End</strong>.", delayEnd: "DELAY END",
       plannerLabel: "Delay End calculator", programHeading: "Washing programme", programIntro: "Official baseline time, with your preferred programme remembered locally.", programLabel: "Programme",
       windowHeading: "Cheap energy window", windowIntro: "Enter it yourself or ask for the cheapest available fit.", starts: "Starts", ends: "Ends", manualWindow: "Manual cheap-energy window.", marketEnvelope: "Planning envelope: recommended wash plus {margin} minutes of safety margin on each side. Prices are evaluated in exact 15-minute market intervals.",
@@ -22,7 +22,7 @@
     },
     nl: {
       metaDescription: "Bereken de instelling Uitgesteld einde voor een Samsung WF702Y4BKWQ/EN-wasmachine.",
-      homeLabel: "Laundry Window startpagina", languageLabel: "Taal", englishLabel: "Engels", dutchLabel: "Nederlands",
+      homeLabel: "Laundry Window startpagina", languageLabel: "Taal", englishLabel: "Engels (VK)", dutchLabel: "Nederlands",
       heroEyebrow: "WASPLANNER VOOR GOEDKOPE STROOM", heroTitle: "Stel de tijd in.<br>Sla het rekenen over.", heroIntro: "Vertel wanneer stroom goedkoop is en welk programma je gebruikt. Ik vertel precies wat je bij <strong>Uitgesteld einde</strong> moet instellen.", delayEnd: "UITGESTELD EINDE",
       plannerLabel: "Calculator voor Uitgesteld einde", programHeading: "Wasprogramma", programIntro: "Officiële basistijd, met je voorkeursprogramma lokaal onthouden.", programLabel: "Programma",
       windowHeading: "Goedkope-stroomvenster", windowIntro: "Vul het zelf in of laat het goedkoopste passende moment zoeken.", starts: "Begint", ends: "Eindigt", manualWindow: "Handmatig goedkoop stroomvenster.", marketEnvelope: "Planningsmarge: aanbevolen was plus {margin} minuten veiligheidsmarge aan beide kanten. Prijzen worden per exact marktkwartier berekend.",
