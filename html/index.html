@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Calculate the Delay End setting for a Samsung WF702Y4BKWQ/EN washing machine.">
+  <meta name="description" content="Calculate the finish-timer setting for supported Samsung and Bosch washing machines.">
   <meta name="theme-color" content="#174e3e">
-  <title>Laundry Window · Samsung Delay End calculator</title>
+  <title>Laundry Window · washing-machine finish timer</title>
   <link rel="stylesheet" href="styles.css">
   <script src="i18n.js" defer></script>
   <script src="market-prices.js" defer></script>
@@ -18,29 +18,30 @@
         <span class="brand-mark" aria-hidden="true"><i></i></span>
         Laundry Window
       </a>
-      <div class="header-tools"><span class="model-chip">Samsung WF702Y4BKWQ/EN</span><div class="language-switch" role="group" aria-label="Language" data-i18n-aria="languageLabel"><button type="button" data-language="nl" aria-label="Nederlands" data-i18n-aria="dutchLabel">🇳🇱</button><button type="button" data-language="en" aria-label="English (UK)" data-i18n-aria="englishLabel">🇬🇧</button></div></div>
+      <div class="header-tools"><span class="model-chip" id="model-chip">Samsung WF702Y4BKWQ/EN</span><div class="language-switch" role="group" aria-label="Language" data-i18n-aria="languageLabel"><button type="button" data-language="nl" aria-label="Nederlands" data-i18n-aria="dutchLabel">🇳🇱</button><button type="button" data-language="en" aria-label="English (UK)" data-i18n-aria="englishLabel">🇬🇧</button></div></div>
     </header>
 
     <section class="hero" id="top">
       <div class="hero-copy">
         <p class="eyebrow" data-i18n="heroEyebrow">CHEAP-ENERGY WASH PLANNER</p>
-        <h1 data-i18n-html="heroTitle">Set the delay.<br>Skip the maths.</h1>
-        <p class="intro" data-i18n-html="heroIntro">Tell me when electricity is cheap and what you’re washing. I’ll tell you exactly what to select on <strong>Delay End</strong>.</p>
+        <h1 data-i18n-html="heroTitle">Set the time.<br>Skip the maths.</h1>
+        <p class="intro" data-i18n-html="heroIntro">Tell me when electricity is cheap, which machine you use and what you’re washing. I’ll tell you exactly what to select on its <strong>finish timer</strong>.</p>
       </div>
       <div class="dial-art" aria-hidden="true">
         <span class="dial-label dial-label-top">3h</span>
         <span class="dial-label dial-label-right">19h</span>
         <div class="dial-ring"><span></span></div>
-        <small data-i18n="delayEnd">DELAY END</small>
+        <small id="hero-timer-label">DELAY END</small>
       </div>
     </section>
 
-    <section class="planner" aria-label="Delay End calculator" data-i18n-aria="plannerLabel">
+    <section class="planner" aria-label="Washing-machine finish-timer calculator" data-i18n-aria="plannerLabel">
       <form class="input-panel" id="planner-form">
         <div class="step-heading">
           <span>1</span>
-          <div><h2 data-i18n="programHeading">Washing programme</h2><p data-i18n="programIntro">Official baseline time, with your preferred programme remembered locally.</p></div>
+          <div><h2 data-i18n="programHeading">Machine &amp; washing programme</h2><p data-i18n="programIntro">Model-specific baseline times, with your choices remembered locally.</p></div>
         </div>
+        <label class="machine-select"><span data-i18n="machineLabel">Washing machine</span><select id="machine-profile"></select></label>
         <label class="programme-select"><span data-i18n="programLabel">Programme</span><select id="programme"></select></label>
         <div class="programme-preference">
           <span id="preferred-programme-label"></span>
@@ -61,7 +62,7 @@
           <div class="market-heading">
             <span data-i18n="marketEyebrow">DUTCH DAY-AHEAD PRICES</span>
             <strong data-i18n="marketHeading">Find the cheapest fit</strong>
-            <p data-i18n="marketIntro">Compares every valid Delay End setting for this programme.</p>
+            <p data-i18n="marketIntro">Compares every valid finish-timer setting for this programme.</p>
           </div>
           <div class="market-actions" aria-label="Choose a price day" data-i18n-aria="marketDayLabel">
             <button id="suggest-today" type="button" data-suggest-day="0" data-i18n="suggestToday">Suggest today</button>
@@ -89,7 +90,7 @@
               <select id="safety-margin"><option value="0" data-i18n="noMargin">No margin</option><option value="10">10 minutes</option><option value="15" selected>15 minutes</option><option value="30">30 minutes</option></select>
             </label>
           </div>
-          <label class="check-row">
+          <label class="check-row" id="prewash-row">
             <input id="prewash" type="checkbox">
             <span><strong data-i18n="addPrewash">Add prewash</strong><small data-i18n="prewashNote">Samsung says this adds about 18 minutes.</small></span>
           </label>
@@ -99,7 +100,7 @@
       <aside class="result-panel" id="result" aria-live="polite">
         <p class="result-kicker" data-i18n="selectMachine">SELECT ON THE MACHINE</p>
         <div id="result-content">
-          <div class="empty-result"><div class="empty-dial" aria-hidden="true">—</div><h2 data-i18n="readyHeading">Ready when you are</h2><p data-i18n="readyText">Choose a valid window to see the Delay End setting.</p></div>
+          <div class="empty-result"><div class="empty-dial" aria-hidden="true">—</div><h2 data-i18n="readyHeading">Ready when you are</h2><p data-i18n="readyText">Choose a valid window to see the finish-timer setting.</p></div>
         </div>
       </aside>
     </section>
@@ -107,23 +108,23 @@
     <section class="how-it-works">
       <div><p class="eyebrow" data-i18n="whyEyebrow">WHY THIS NUMBER?</p><h2 data-i18n-html="whyTitle">The button chooses when the wash <em>ends</em>.</h2></div>
       <ol>
-        <li><span>01</span><p data-i18n-html="why1">The machine accepts only whole-hour settings from <strong>3 to 19 hours</strong>.</p></li>
+        <li><span>01</span><p id="why-range">Starting now needs no timer; Delay End accepts whole-hour settings from <strong>3 to 19 hours</strong>.</p></li>
         <li><span>02</span><p data-i18n-html="why2">We subtract the programme time to check that the wash <strong>starts after cheap energy begins</strong>.</p></li>
         <li><span>03</span><p data-i18n-html="why3">We centre the cycle in the window where possible, leaving room for <strong>real-world timing drift</strong>.</p></li>
       </ol>
     </section>
 
     <details class="programme-reference">
-      <summary><span data-i18n="reference">Official programme-time reference</span><small data-i18n="manualPage">Samsung manual · page 37</small></summary>
+      <summary><span data-i18n="reference">Programme-time reference</span><small id="manual-page">Samsung manual · page 37</small></summary>
       <div class="reference-grid" id="reference-grid"></div>
-      <p data-i18n-html="referenceText">Quick wash can be selected at 15, 20, 30, 40, 50 or 60 minutes. Actual times can vary with water pressure and temperature, load, fabric and selected options. Intensive wash extends every cycle; use the measured-time field when you use it. <a class="source-link" href="https://www.samsung.com/nl/support/model.WF702Y4BKWQ_EN/" rel="noreferrer">Official Samsung support page</a>.</p>
+      <p id="reference-text"></p>
     </details>
 
     <section class="compatibility-section" aria-labelledby="compatibility-heading">
       <div class="compatibility-intro">
         <p class="eyebrow" data-i18n="compatibility">COMPATIBILITY</p>
-        <h2 id="compatibility-heading" data-i18n-html="compatibilityTitle">Built for one Samsung family.<br><em>More machines later.</em></h2>
-        <p data-i18n="compatibilityIntro">The timings and Delay End rules currently come from one shared Samsung manual. No other brand is assumed compatible yet.</p>
+        <h2 id="compatibility-heading" data-i18n-html="compatibilityTitle">Two model profiles.<br><em>More machines later.</em></h2>
+        <p data-i18n="compatibilityIntro">Each profile has its own programme baselines and finish-timer range. Choose the exact model before planning.</p>
       </div>
       <div class="compatibility-cards">
         <article class="compat-card verified-card">
@@ -136,10 +137,10 @@
           <h3>WF702 · WF700 · WF602 · WF600</h3>
           <p data-i18n="familyText">Y4BK and B4BK families are covered by the same official programme table. Regional suffixes may differ.</p>
         </article>
-        <article class="compat-card future-card">
-          <span class="compat-status" data-i18n="future">FUTURE</span>
-          <h3 data-i18n-html="otherModels">Other brands &amp; models</h3>
-          <p data-i18n="futureText">The programme data is isolated in the app, ready for model selection and additional verified manuals later.</p>
+        <article class="compat-card bosch-card">
+          <span class="compat-status" data-i18n="boschProfile">MODEL PROFILE</span>
+          <h3>Bosch WAE284A7NL/12 · Maxx 7 VarioPerfect</h3>
+          <p data-i18n="boschFamilyText">Documented baseline settings and the 1–24 hour Klaar in range. Adaptive programmes use the measured-time override.</p>
         </article>
       </div>
     </section>
@@ -147,7 +148,7 @@
     <footer>
       <div class="footer-copy">
         <span>Laundry Window</span>
-        <p data-i18n="footerText">Made for one very specific Samsung—and one less piece of mental arithmetic.</p>
+        <p data-i18n="footerText">Made for specific washing machines—and one less piece of mental arithmetic.</p>
         <a class="footer-repo" href="https://github.com/roelsroels/laundry-window" rel="noreferrer" data-i18n="githubRepo">View source on GitHub</a>
       </div>
       <div class="footer-support">

@@ -1,42 +1,118 @@
 (() => {
   "use strict";
 
-  const PROGRAMS = [
-    { id: "cotton", nameKey: "cotton", minutes: 133, group: "dialGroup" },
-    { id: "synthetics", nameKey: "synthetics", minutes: 105, group: "dialGroup" },
-    { id: "jeans", nameKey: "jeans", minutes: 77, group: "dialGroup" },
-    { id: "bedding", nameKey: "bedding", minutes: 100, group: "dialGroup" },
-    { id: "dark", nameKey: "dark", minutes: 78, group: "dialGroup" },
-    { id: "daily", nameKey: "daily", minutes: 66, group: "dialGroup" },
-    { id: "drum", nameKey: "drum", minutes: 104, group: "dialGroup" },
-    { id: "baby", nameKey: "baby", minutes: 142, group: "dialGroup" },
-    { id: "sports", nameKey: "sports", minutes: 72, group: "dialGroup" },
-    { id: "hand", nameKey: "hand", minutes: 30, group: "dialGroup" },
-    { id: "wool", nameKey: "wool", minutes: 38, group: "dialGroup" },
-    ...[15, 20, 30, 40, 50, 60].map((minutes) => ({ id: `quick-${minutes}`, nameKey: "quick", minutes, group: "quickGroup" }))
+  const MACHINES = [
+    {
+      id: "samsung-wf-y4bk-b4bk",
+      brand: "Samsung",
+      model: "WF702Y4BKWQ/EN",
+      optionKey: "samsungMachineOption",
+      timerKey: "samsungTimerName",
+      timerRange: { min: 3, max: 19 },
+      prewashMinutes: 18,
+      defaultProgram: "dark",
+      groups: ["dialGroup", "quickGroup"],
+      manualKey: "samsungManualPage",
+      referenceKey: "samsungReferenceText",
+      programs: [
+        { id: "cotton", nameKey: "cotton", minutes: 133, group: "dialGroup" },
+        { id: "synthetics", nameKey: "synthetics", minutes: 105, group: "dialGroup" },
+        { id: "jeans", nameKey: "jeans", minutes: 77, group: "dialGroup" },
+        { id: "bedding", nameKey: "bedding", minutes: 100, group: "dialGroup" },
+        { id: "dark", nameKey: "dark", minutes: 78, group: "dialGroup" },
+        { id: "daily", nameKey: "daily", minutes: 66, group: "dialGroup" },
+        { id: "drum", nameKey: "drum", minutes: 104, group: "dialGroup" },
+        { id: "baby", nameKey: "baby", minutes: 142, group: "dialGroup" },
+        { id: "sports", nameKey: "sports", minutes: 72, group: "dialGroup" },
+        { id: "hand", nameKey: "hand", minutes: 30, group: "dialGroup" },
+        { id: "wool", nameKey: "wool", minutes: 38, group: "dialGroup" },
+        ...[15, 20, 30, 40, 50, 60].map((minutes) => ({ id: `quick-${minutes}`, nameKey: "quick", minutes, group: "quickGroup" }))
+      ]
+    },
+    {
+      id: "bosch-wae284a7nl-12",
+      brand: "Bosch",
+      model: "WAE284A7NL/12",
+      optionKey: "boschMachineOption",
+      timerKey: "boschTimerName",
+      timerRange: { min: 1, max: 24 },
+      prewashMinutes: 0,
+      defaultProgram: "cotton-40",
+      groups: ["boschCottonGroup", "boschOtherGroup"],
+      manualKey: "boschManualPage",
+      referenceKey: "boschReferenceText",
+      programs: [
+        { id: "cotton-20", nameKey: "boschCotton20", minutes: 150, group: "boschCottonGroup" },
+        { id: "cotton-30", nameKey: "boschCotton30", minutes: 150, group: "boschCottonGroup" },
+        { id: "cotton-40", nameKey: "boschCotton40", minutes: 150, group: "boschCottonGroup" },
+        { id: "cotton-60", nameKey: "boschCotton60", minutes: 165, group: "boschCottonGroup" },
+        { id: "cotton-90", nameKey: "boschCotton90", minutes: 165, group: "boschCottonGroup" },
+        { id: "easy-care-40", nameKey: "boschEasyCare40", minutes: 105, group: "boschOtherGroup" },
+        { id: "quick-mix-40", nameKey: "boschQuickMix40", minutes: 75, group: "boschOtherGroup" },
+        { id: "delicates-30", nameKey: "boschDelicates30", minutes: 45, group: "boschOtherGroup" },
+        { id: "wool-30", nameKey: "boschWool30", minutes: 45, group: "boschOtherGroup" },
+        { id: "super-quick-15", nameKey: "boschSuperQuick15", minutes: 15, group: "boschOtherGroup" }
+      ]
+    }
   ];
 
   const minute = 60000;
   const hour = 60 * minute;
   const $ = (selector) => document.querySelector(selector);
   const form = $("#planner-form");
+  const machineSelect = $("#machine-profile");
   const programme = $("#programme");
   const measured = $("#measured-time");
   const marketButtons = Array.from(document.querySelectorAll("[data-suggest-day]"));
   const marketPrices = window.LaundryMarketPrices;
   const i18n = window.LaundryI18n;
   const t = (key, values) => i18n.t(key, values);
+  let machineId = MACHINES[0].id;
   let overrides = {};
-  let preferredProgramId = "dark";
+  let preferredPrograms = {};
   let suggestionActive = false;
   let lastMarketResult = null;
   let lastSuggestionDayOffset = null;
 
-  try { overrides = JSON.parse(localStorage.getItem("washer-program-overrides") || "{}"); } catch (_) { overrides = {}; }
   try {
-    const savedPreference = localStorage.getItem("washer-preferred-program");
-    if (PROGRAMS.some((item) => item.id === savedPreference)) preferredProgramId = savedPreference;
+    const savedMachine = localStorage.getItem("washer-machine-profile");
+    if (MACHINES.some((item) => item.id === savedMachine)) machineId = savedMachine;
   } catch (_) {}
+  try {
+    const savedV2 = localStorage.getItem("washer-program-overrides-v2");
+    const saved = JSON.parse(savedV2 || "{}");
+    if (saved && typeof saved === "object") overrides = saved;
+    else overrides = {};
+    if (!savedV2) {
+      const legacy = JSON.parse(localStorage.getItem("washer-program-overrides") || "{}");
+      if (legacy && typeof legacy === "object") overrides[MACHINES[0].id] = legacy;
+    }
+  } catch (_) { overrides = {}; }
+  try {
+    const saved = JSON.parse(localStorage.getItem("washer-preferred-programs") || "{}");
+    if (saved && typeof saved === "object") preferredPrograms = saved;
+    else preferredPrograms = {};
+    const legacyPreference = localStorage.getItem("washer-preferred-program");
+    if (!preferredPrograms[MACHINES[0].id] && MACHINES[0].programs.some((item) => item.id === legacyPreference)) {
+      preferredPrograms[MACHINES[0].id] = legacyPreference;
+    }
+  } catch (_) { preferredPrograms = {}; }
+
+  function currentMachine() {
+    return MACHINES.find((item) => item.id === machineId) || MACHINES[0];
+  }
+
+  function preferredProgramId() {
+    const machine = currentMachine();
+    const saved = preferredPrograms[machine.id];
+    return machine.programs.some((item) => item.id === saved) ? saved : machine.defaultProgram;
+  }
+
+  function machineOverrides() {
+    const machine = currentMachine();
+    if (!overrides[machine.id] || typeof overrides[machine.id] !== "object") overrides[machine.id] = {};
+    return overrides[machine.id];
+  }
 
   function inputValue(date) {
     return new Date(date.getTime() - date.getTimezoneOffset() * minute).toISOString().slice(0, 16);
@@ -77,21 +153,41 @@
   }
 
   function currentProgram() {
-    return PROGRAMS.find((item) => item.id === programme.value) || PROGRAMS[0];
+    const machine = currentMachine();
+    return machine.programs.find((item) => item.id === programme.value) || machine.programs[0];
   }
 
   function cycleMinutes() {
+    const machine = currentMachine();
     const selected = currentProgram();
-    return (overrides[selected.id] || selected.minutes) + ($("#prewash").checked ? 18 : 0);
+    return (machineOverrides()[selected.id] || selected.minutes) + ($("#prewash").checked ? machine.prewashMinutes : 0);
+  }
+
+  function delayChoices(includeNow = true) {
+    const { min, max } = currentMachine().timerRange;
+    const choices = Array.from({ length: max - min + 1 }, (_, index) => index + min);
+    return includeNow ? [0, ...choices] : choices;
+  }
+
+  function fillMachines() {
+    machineSelect.replaceChildren();
+    MACHINES.forEach((machine) => {
+      const option = document.createElement("option");
+      option.value = machine.id;
+      option.textContent = t(machine.optionKey);
+      machineSelect.append(option);
+    });
+    machineSelect.value = machineId;
   }
 
   function fillProgrammes() {
-    const selectedValue = programme.value || preferredProgramId;
+    const machine = currentMachine();
+    const selectedValue = programme.value || preferredProgramId();
     programme.replaceChildren();
-    ["dialGroup", "quickGroup"].forEach((groupName) => {
+    machine.groups.forEach((groupName) => {
       const group = document.createElement("optgroup");
       group.label = t(groupName);
-      PROGRAMS.filter((item) => item.group === groupName).forEach((item) => {
+      machine.programs.filter((item) => item.group === groupName).forEach((item) => {
         const option = document.createElement("option");
         option.value = item.id;
         option.textContent = `${programName(item)} · ${durationText(item.minutes)}`;
@@ -99,10 +195,10 @@
       });
       programme.append(group);
     });
-    programme.value = PROGRAMS.some((item) => item.id === selectedValue) ? selectedValue : preferredProgramId;
+    programme.value = machine.programs.some((item) => item.id === selectedValue) ? selectedValue : preferredProgramId();
 
     $("#reference-grid").replaceChildren();
-    PROGRAMS.filter((item) => item.group === "dialGroup").forEach((item) => {
+    machine.programs.forEach((item) => {
       const row = document.createElement("div");
       const name = document.createElement("span");
       const time = document.createElement("strong");
@@ -113,15 +209,29 @@
     });
   }
 
+  function updateMachineCopy() {
+    const machine = currentMachine();
+    $("#model-chip").textContent = `${machine.brand} ${machine.model}`;
+    $("#hero-timer-label").textContent = t(machine.timerKey).toUpperCase();
+    $(".dial-label-top").textContent = `${machine.timerRange.min}h`;
+    $(".dial-label-right").textContent = `${machine.timerRange.max}h`;
+    $("#why-range").innerHTML = t("why1", { timer: t(machine.timerKey), min: machine.timerRange.min, max: machine.timerRange.max });
+    $("#manual-page").textContent = t(machine.manualKey);
+    $("#reference-text").innerHTML = t(machine.referenceKey);
+    $("#prewash-row").hidden = !machine.prewashMinutes;
+    if (!machine.prewashMinutes) $("#prewash").checked = false;
+  }
+
   function updateMeasuredField() {
     const selected = currentProgram();
     measured.placeholder = String(selected.minutes);
-    measured.value = overrides[selected.id] || "";
+    measured.value = machineOverrides()[selected.id] || "";
     $("#measured-note").textContent = t("savedFor", { program: programName(selected) });
   }
 
   function updatePreferenceControls() {
-    const preferred = PROGRAMS.find((item) => item.id === preferredProgramId) || PROGRAMS.find((item) => item.id === "dark");
+    const machine = currentMachine();
+    const preferred = machine.programs.find((item) => item.id === preferredProgramId()) || machine.programs[0];
     const button = $("#set-preferred-programme");
     const selectedIsPreferred = programme.value === preferred.id;
     $("#preferred-programme-label").textContent = t("preferredInBrowser", { program: programName(preferred) });
@@ -130,8 +240,8 @@
   }
 
   function savePreferredProgram() {
-    preferredProgramId = programme.value;
-    try { localStorage.setItem("washer-preferred-program", preferredProgramId); } catch (_) {}
+    preferredPrograms[currentMachine().id] = programme.value;
+    try { localStorage.setItem("washer-preferred-programs", JSON.stringify(preferredPrograms)); } catch (_) {}
     updatePreferenceControls();
   }
 
@@ -204,14 +314,15 @@
       const response = await fetch(marketPrices.priceUrl(planning));
       if (!response.ok) throw new Error(`Price service returned ${response.status}`);
       const points = marketPrices.energyZeroPricePoints(await response.json());
-      const best = marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset);
+      const timerRange = currentMachine().timerRange;
+      const best = marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange);
       const cheapWindow = marketPrices.findLowPriceWindow(points, planning, dayOffset);
       const intervals = marketPrices.normalisePricePoints(points);
       if (!intervals.length) throw new Error("The price feed returned no usable values");
 
       if (!best || !cheapWindow) {
         const unavailable = dayOffset === 1 && !marketPrices.hasPricesForDay(points, planning, dayOffset);
-        setMarketStatus(t(unavailable ? "tomorrowUnavailable" : "noDayFit", { day: t(dayOffset ? "tomorrow" : "today") }), "error");
+        setMarketStatus(t(unavailable ? "tomorrowUnavailable" : "noDayFit", { day: t(dayOffset ? "tomorrow" : "today"), min: timerRange.min, max: timerRange.max, timer: t(currentMachine().timerKey) }), "error");
         return;
       }
 
@@ -239,6 +350,7 @@
     const planning = new Date($("#planning-time").value);
     const windowStart = new Date($("#cheap-start").value);
     const windowEnd = new Date($("#cheap-end").value);
+    const machine = currentMachine();
     const selected = currentProgram();
     const margin = Number($("#safety-margin").value);
     const plannedMinutes = cycleMinutes();
@@ -246,21 +358,19 @@
     if ([planning, windowStart, windowEnd].some((date) => Number.isNaN(date.getTime()))) return renderError(t("invalidDate"));
     if (windowEnd <= windowStart) return renderError(t("invalidWindow"));
 
-    const schedules = [0, ...Array.from({ length: 17 }, (_, index) => index + 3)].map((delayHours) => {
+    const schedules = delayChoices().map((delayHours) => {
       const end = new Date(planning.getTime() + delayHours * hour);
       const start = delayHours === 0 ? planning : new Date(end.getTime() - plannedMinutes * minute);
       const actualEnd = delayHours === 0 ? new Date(planning.getTime() + plannedMinutes * minute) : end;
       return { delayHours, start, end: actualEnd, overlapMinutes: overlap(start, actualEnd, windowStart, windowEnd) };
-    });
+    }).filter((schedule) => schedule.delayHours === 0 || schedule.start >= planning);
 
     const protectedStart = new Date(windowStart.getTime() + margin * minute);
     const protectedEnd = new Date(windowEnd.getTime() - margin * minute);
     const fitting = schedules.filter((item) => item.start >= protectedStart && item.end <= protectedEnd);
     const marketSchedule = suggestionActive && lastMarketResult ? schedules.find((item) => item.delayHours === lastMarketResult.best.delayHours) : null;
 
-    if (marketSchedule && fitting.includes(marketSchedule)) {
-      return renderSchedule(marketSchedule, selected, plannedMinutes, windowStart, windowEnd, true);
-    }
+    if (marketSchedule && fitting.includes(marketSchedule)) return renderSchedule(marketSchedule, selected, plannedMinutes, windowStart, windowEnd, true);
 
     if (!marketSchedule && fitting.length) {
       const centre = (windowStart.getTime() + windowEnd.getTime()) / 2;
@@ -270,7 +380,7 @@
 
     schedules.sort((a, b) => b.overlapMinutes - a.overlapMinutes);
     const closestSchedule = marketSchedule || schedules[0];
-    let message = t("noWholeFit");
+    let message = t("noWholeFit", { timer: t(machine.timerKey) });
     let warningTitle = "";
     const windowMinutes = (windowEnd - windowStart) / minute;
     const percent = Math.round(closestSchedule.overlapMinutes / plannedMinutes * 100);
@@ -282,8 +392,8 @@
       message = t("safetyMessage", { used: shortfall, margin });
       warningTitle = t("safetyTitle", { shortfall });
     } else if (plannedMinutes + margin * 2 > windowMinutes) message = t("tooLong");
-    else if (windowEnd.getTime() < planning.getTime() + 3 * hour) message = t("tooEarly");
-    else if (windowStart.getTime() > planning.getTime() + 19 * hour) message = t("tooLate");
+    else if (windowEnd.getTime() < planning.getTime() + machine.timerRange.min * hour) message = t("tooEarly", { min: machine.timerRange.min });
+    else if (windowStart.getTime() > planning.getTime() + machine.timerRange.max * hour) message = t("tooLate", { max: machine.timerRange.max });
     renderSchedule(closestSchedule, selected, plannedMinutes, windowStart, windowEnd, false, message, percent, warningTitle);
   }
 
@@ -293,12 +403,13 @@
     $(".manual-error").textContent = message;
   }
 
-  function renderSchedule(schedule, selected, cycleMinutes, windowStart, windowEnd, exact, message = "", percent = 0, warningTitle = "") {
+  function renderSchedule(schedule, selected, plannedMinutes, windowStart, windowEnd, exact, message = "", percent = 0, warningTitle = "") {
+    const timerName = t(currentMachine().timerKey);
     $("#result").classList.toggle("result-warning", !exact);
     $("#result-content").innerHTML = `
       <div class="delay-readout${schedule.delayHours === 0 ? " immediate-readout" : ""}"><strong id="delay-number"></strong><span id="delay-unit">h</span></div>
-      <h2>${schedule.delayHours === 0 ? t("startNowHeading") : (i18n.language === "nl" ? "Uitgesteld einde" : "Delay End")}</h2>
-      <p class="instruction">${t(schedule.delayHours === 0 ? "instructionNow" : "instruction")}</p>
+      <h2>${schedule.delayHours === 0 ? t("startNowHeading") : timerName}</h2>
+      <p class="instruction">${t(schedule.delayHours === 0 ? "instructionNow" : "instruction", { timer: timerName })}</p>
       <div class="warning-box" id="warning-box"${exact ? " hidden" : ""}><strong id="warning-title"></strong><span id="warning-message"></span></div>
       <div class="timeline" aria-label="${t("expectedTiming")}"><div class="timeline-track" id="timeline-track"><span></span></div><div class="timeline-labels"><span><small>${t("washStarts")}</small><strong id="wash-start"></strong></span><span><small>${t("washEnds")}</small><strong id="wash-end"></strong></span></div></div>
       <dl class="summary-list"><div><dt>${t("programLabel")}</dt><dd id="summary-programme"></dd></div><div><dt>${t("plannedDuration")}</dt><dd id="summary-duration"></dd></div><div><dt>${t(suggestionActive ? "marketBandSummary" : "windowSummary")}</dt><dd id="summary-window"></dd></div></dl>
@@ -310,9 +421,9 @@
     $("#wash-start").textContent = momentText(schedule.start);
     $("#wash-end").textContent = momentText(schedule.end);
     $("#summary-programme").textContent = programName(selected);
-    $("#summary-duration").textContent = durationText(cycleMinutes);
+    $("#summary-duration").textContent = durationText(plannedMinutes);
     $("#summary-window").textContent = `${momentText(windowStart)} – ${momentText(windowEnd)}`;
-    const coverage = marketPrices.timelineCoverage(schedule, windowStart, windowEnd, cycleMinutes);
+    const coverage = marketPrices.timelineCoverage(schedule, windowStart, windowEnd, plannedMinutes);
     const track = $("#timeline-track");
     track.style.setProperty("--outside-before", `${coverage.beforePercent}%`);
     track.style.setProperty("--inside-until", `${100 - coverage.afterPercent}%`);
@@ -332,7 +443,21 @@
     if (shouldReoptimise) await suggestMarketWindow(dayOffset); else calculate();
   }
 
+  function updateMachine() {
+    machineId = machineSelect.value;
+    try { localStorage.setItem("washer-machine-profile", machineId); } catch (_) {}
+    invalidateSuggestion();
+    fillProgrammes();
+    updateMachineCopy();
+    updateMeasuredField();
+    updatePreferenceControls();
+    setMarketStatus(t("marketDefault"));
+    calculate();
+  }
+
+  fillMachines();
   fillProgrammes();
+  updateMachineCopy();
   const now = new Date();
   const cheap = getDefaultWindow(now);
   $("#planning-time").value = inputValue(now);
@@ -344,7 +469,9 @@
   updateWindowContext();
 
   i18n.onChange(() => {
+    fillMachines();
     fillProgrammes();
+    updateMachineCopy();
     updateMeasuredField();
     updatePreferenceControls();
     updateSafetyOptions();
@@ -360,6 +487,7 @@
     $("#advanced-toggle").setAttribute("aria-expanded", String(!panel.hidden));
     $("#advanced-toggle span").textContent = panel.hidden ? "+" : "−";
   });
+  machineSelect.addEventListener("change", updateMachine);
   $("#use-now").addEventListener("click", useNow);
   $("#set-preferred-programme").addEventListener("click", savePreferredProgram);
   marketButtons.forEach((button) => button.addEventListener("click", () => suggestMarketWindow(Number(button.dataset.suggestDay))));
@@ -368,11 +496,11 @@
     invalidateSuggestion();
     const selected = currentProgram();
     const value = Number(measured.value);
-    if (measured.value && value > 0) overrides[selected.id] = Math.round(value); else delete overrides[selected.id];
-    try { localStorage.setItem("washer-program-overrides", JSON.stringify(overrides)); } catch (_) {}
+    if (measured.value && value > 0) machineOverrides()[selected.id] = Math.round(value); else delete machineOverrides()[selected.id];
+    try { localStorage.setItem("washer-program-overrides-v2", JSON.stringify(overrides)); } catch (_) {}
     calculate();
   });
-  form.addEventListener("input", (event) => { if (event.target !== measured) { invalidateSuggestion(); calculate(); } });
+  form.addEventListener("input", (event) => { if (event.target !== measured && event.target !== machineSelect) { invalidateSuggestion(); calculate(); } });
   form.addEventListener("submit", (event) => event.preventDefault());
   calculate();
 })();

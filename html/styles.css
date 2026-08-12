@@ -59,7 +59,9 @@ main { min-height: 100vh; overflow: hidden; }
 label > span, .programme-select > span { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; }
 input, select { width: 100%; min-height: 50px; color: var(--ink); background: #f8f6f0; border: 1px solid var(--line); border-radius: 11px; padding: 0 13px; outline: none; transition: border-color .2s, box-shadow .2s; }
 input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(23,78,62,.12); }
-.programme-select { display: block; }
+.machine-select, .programme-select { display: block; }
+.machine-select { margin-bottom: 14px; }
+.machine-select select { min-height: 52px; font-weight: 650; font-size: 13px; }
 .programme-select select { min-height: 58px; font-weight: 650; font-size: 15px; }
 .programme-preference { margin-top: 9px; display: flex; align-items: center; justify-content: space-between; gap: 14px; color: var(--muted); font-size: 10px; line-height: 1.4; }
 .programme-preference button { flex: 0 0 auto; padding: 5px 0; border: 0; color: var(--green); background: transparent; font-size: 10px; font-weight: 750; }
@@ -158,6 +160,8 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .compatibility-cards { display: grid; gap: 10px; }
 .compat-card { padding: 22px; border: 1px solid rgba(255,255,255,.15); border-radius: 14px; background: rgba(255,255,255,.055); }
 .compat-card.verified-card { color: var(--ink); background: var(--lime); border-color: var(--lime); }
+.compat-card.bosch-card { border-color: rgba(215,240,109,.48); }
+.bosch-card .compat-status { color: var(--lime); }
 .compat-card.future-card { border-style: dashed; }
 .compat-status { display: block; margin-bottom: 9px; color: var(--orange); font: 700 9px/1 var(--font-geist-mono), monospace; letter-spacing: .13em; }
 .verified-card .compat-status { color: var(--green); }
