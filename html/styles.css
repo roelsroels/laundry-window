@@ -72,6 +72,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .market-suggestion button { min-height: 43px; padding: 0 15px; border: 0; border-radius: 10px; color: white; background: var(--green); font-size: 11px; font-weight: 750; }
 .market-suggestion button:hover { background: #0f3e31; }
 .market-suggestion button:disabled { cursor: wait; opacity: .65; }
+.market-actions { min-width: 226px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .market-status { grid-column: 1 / -1; margin: 3px 0 0; padding-top: 10px; border-top: 1px solid rgba(23,78,62,.14); color: #53655e; font-size: 11px; line-height: 1.45; }
 .market-status[data-state="success"] { color: var(--green); font-weight: 650; }
 .market-status[data-state="error"] { color: #8b3c29; }
@@ -166,6 +167,7 @@ footer { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 
 .footer-copy { display: grid; gap: 7px; }
 .footer-copy span { font-weight: 750; }
 .footer-copy p { margin: 0; color: var(--muted); line-height: 1.5; }
+.footer-repo { width: max-content; color: var(--green); font-weight: 700; text-underline-offset: 3px; }
 .footer-support { min-height: 60px; flex: 0 0 auto; display: flex; align-items: center; }
 
 @media (max-width: 900px) {
@@ -180,7 +182,7 @@ footer { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 
   .hero { min-height: auto; grid-template-columns: 1fr; padding: 46px 0; }.hero h1 { font-size: 58px; }.intro { font-size: 16px; margin-top: 24px; }.dial-art { display: none; }
   .planner { border-radius: 17px; margin-bottom: 70px; }.input-panel, .result-panel { padding: 27px 22px; }.field-grid { grid-template-columns: 1fr; }.programme-heading { margin-top: 30px; }
   .programme-preference { align-items: flex-start; }
-  .market-suggestion { grid-template-columns: 1fr; }.market-suggestion button { width: 100%; }.market-status, .market-suggestion > small { grid-column: 1; }
+  .market-suggestion { grid-template-columns: 1fr; }.market-actions { min-width: 0; width: 100%; }.market-suggestion button { width: 100%; }.market-status, .market-suggestion > small { grid-column: 1; }
   .result-panel { min-height: 600px; }.delay-readout strong { font-size: 110px; }
   .how-it-works { margin-bottom: 60px; }.how-it-works h2 { font-size: 38px; }
   .reference-grid { grid-template-columns: 1fr; }.reference-grid div:nth-child(n) { padding-left: 0; border-left: 0; }

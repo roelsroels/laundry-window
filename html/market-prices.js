@@ -37,16 +37,58 @@
     return weightedPrice / duration;
   }
 
-  function findCheapestSchedule(rawPoints, planningDate, cycleMinutes) {
+  function localDayBounds(referenceDate, dayOffset) {
+    const start = new Date(referenceDate);
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() + dayOffset);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return { start: start.getTime(), end: end.getTime() };
+  }
+
+  function hasPricesForDay(rawPoints, planningDate, dayOffset) {
+    const intervals = normalisePricePoints(rawPoints);
+    const bounds = localDayBounds(planningDate, dayOffset);
+    return intervals.some((interval) => interval.start < bounds.end && interval.end > bounds.start);
+  }
+
+  function findLowPriceWindow(rawPoints, planningDate, dayOffset) {
+    const bounds = localDayBounds(planningDate, dayOffset);
+    const intervals = normalisePricePoints(rawPoints)
+      .filter((interval) => interval.start < bounds.end && interval.end > bounds.start)
+      .map((interval) => ({ ...interval, start: Math.max(interval.start, bounds.start), end: Math.min(interval.end, bounds.end) }));
+    if (!intervals.length) return null;
+
+    const minimum = Math.min(...intervals.map((interval) => interval.value));
+    const threshold = Math.max(5, minimum + 10);
+    const groups = [];
+    intervals.filter((interval) => interval.value <= threshold).forEach((interval) => {
+      const previous = groups[groups.length - 1];
+      if (previous && interval.start <= previous.end + 1) {
+        previous.end = Math.max(previous.end, interval.end);
+        previous.weighted += interval.value * (interval.end - interval.start);
+        previous.duration += interval.end - interval.start;
+      } else {
+        groups.push({ start: interval.start, end: interval.end, weighted: interval.value * (interval.end - interval.start), duration: interval.end - interval.start });
+      }
+    });
+
+    groups.sort((a, b) => b.duration - a.duration || a.weighted / a.duration - b.weighted / b.duration || a.start - b.start);
+    const best = groups[0];
+    return best ? { start: best.start, end: best.end, average: best.weighted / best.duration, threshold } : null;
+  }
+
+  function findCheapestSchedule(rawPoints, planningDate, cycleMinutes, dayOffset = null) {
     const planning = new Date(planningDate).getTime();
     if (!Number.isFinite(planning) || !Number.isFinite(cycleMinutes) || cycleMinutes <= 0) return null;
 
     const intervals = normalisePricePoints(rawPoints);
+    const bounds = dayOffset === null ? null : localDayBounds(planningDate, dayOffset);
     const candidates = Array.from({ length: 17 }, (_, index) => index + 3).map((delayHours) => {
       const end = planning + delayHours * hour;
       const start = end - cycleMinutes * minute;
       return { delayHours, start, end, average: averagePrice(start, end, intervals) };
-    }).filter((candidate) => candidate.average !== null);
+    }).filter((candidate) => candidate.average !== null && (!bounds || (candidate.start >= bounds.start && candidate.end <= bounds.end)));
 
     candidates.sort((a, b) => a.average - b.average || a.delayHours - b.delayHours);
     return candidates[0] || null;
@@ -62,5 +104,5 @@
   }
 
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, findCheapestSchedule, normalisePricePoints, timelineCoverage };
+  scope.LaundryMarketPrices = { API_URL, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, normalisePricePoints, timelineCoverage };
 })();
