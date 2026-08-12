@@ -30,6 +30,7 @@ The calculator runs entirely in the browser. It has no analytics, cookies, serve
 - Complete English and Dutch interfaces, with the language stored only in the current browser
 - An optional live suggestion based on published Dutch day-ahead prices
 - A closest-fit suggestion when no setting keeps the complete wash inside the window
+- A proportional timeline: green inside the cheap window and orange outside it
 
 ## Live market-price suggestions
 

@@ -52,6 +52,15 @@
     return candidates[0] || null;
   }
 
+  function timelineCoverage(schedule, windowStart, windowEnd, cycleMinutes) {
+    const beforeMinutes = Math.min(cycleMinutes, Math.max(0, (windowStart - schedule.start) / minute));
+    const afterMinutes = Math.min(cycleMinutes - beforeMinutes, Math.max(0, (schedule.end - windowEnd) / minute));
+    return {
+      beforePercent: beforeMinutes / cycleMinutes * 100,
+      afterPercent: afterMinutes / cycleMinutes * 100
+    };
+  }
+
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, findCheapestSchedule, normalisePricePoints };
+  scope.LaundryMarketPrices = { API_URL, findCheapestSchedule, normalisePricePoints, timelineCoverage };
 })();
