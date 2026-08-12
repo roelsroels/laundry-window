@@ -201,9 +201,9 @@
     setMarketStatus(t("fetching"));
 
     try {
-      const response = await fetch(marketPrices.API_URL);
+      const response = await fetch(marketPrices.priceUrl(planning));
       if (!response.ok) throw new Error(`Price service returned ${response.status}`);
-      const points = await response.json();
+      const points = marketPrices.energyZeroPricePoints(await response.json());
       const best = marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset);
       const cheapWindow = marketPrices.findLowPriceWindow(points, planning, dayOffset);
       const intervals = marketPrices.normalisePricePoints(points);

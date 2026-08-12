@@ -1,9 +1,28 @@
 (() => {
   "use strict";
 
-  const API_URL = "https://spot.utilitarian.io/electricity/NL/latest/";
+  const API_URL = "https://public.api.energyzero.nl/public/v1/prices";
   const minute = 60000;
   const hour = 60 * minute;
+
+  function priceUrl(referenceDate) {
+    const date = new Date(referenceDate);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const params = new URLSearchParams({
+      energyType: "ENERGY_TYPE_ELECTRICITY",
+      date: `${day}-${month}-${date.getFullYear()}`,
+      interval: "INTERVAL_QUARTER"
+    });
+    return `${API_URL}?${params}`;
+  }
+
+  function energyZeroPricePoints(payload) {
+    return (Array.isArray(payload?.base) ? payload.base : []).map((item) => ({
+      timestamp: item.start,
+      value: Number(item.price?.value) * 1000
+    })).filter((item) => Number.isFinite(item.value));
+  }
 
   function normalisePricePoints(rawPoints) {
     const points = (Array.isArray(rawPoints) ? rawPoints : [])
@@ -112,5 +131,5 @@
   }
 
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, latestSafeStart, normalisePricePoints, timelineCoverage };
+  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, latestSafeStart, normalisePricePoints, priceUrl, timelineCoverage };
 })();

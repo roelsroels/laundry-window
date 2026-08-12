@@ -7,7 +7,7 @@ A tiny, dependency-free planner for the **Samsung WF702Y4BKWQ/EN** washing machi
 The calculator runs entirely in the browser. It has no analytics, cookies, server-side code, build step, or package manager. On request, it downloads the latest Dutch day-ahead market-price feed to suggest the cheapest available schedule. The footer loads the optional Buy Me a Coffee button and its Bree Serif font from third-party CDNs. All publicly served files live under [`html/`](html/); repository documentation, tests, screenshots, and deployment configuration stay outside the web root.
 
 > [!NOTE]
-> The price button fetches the same public Netherlands feed URL for every visitor; programme, timing, and planning values are never added to that request or sent elsewhere. As with any web request, the price provider receives ordinary connection metadata such as the visitor's IP address. The footer support button separately loads JavaScript from `cdnjs.buymeacoffee.com`, loads a font from Google Fonts, and links to `buymeacoffee.com/roels`.
+> The price buttons call EnergyZero’s public API with the requested calendar date; programme, duration, and other planning values are never sent. As with any web request, the price provider receives ordinary connection metadata such as the visitor's IP address. The footer support button separately loads JavaScript from `cdnjs.buymeacoffee.com`, loads a font from Google Fonts, and links to `buymeacoffee.com/roels`.
 
 ## Screenshots
 
@@ -34,7 +34,9 @@ The calculator runs entirely in the browser. It has no analytics, cookies, serve
 
 ## Live market-price suggestions
 
-The **Suggest today** and **Suggest tomorrow** buttons download Netherlands day-ahead prices from [Utilitarian Spot](https://spot.utilitarian.io/developer/). Tomorrow is offered as soon as both its prices and a valid 3–19 hour machine setting are available. The values originate from the ENTSO-E Transparency Platform and are supplied in `€/MWh` at the market’s available resolution, currently 15 minutes for the Netherlands.
+The **Suggest today** and **Suggest tomorrow** buttons download Dutch prices from [EnergyZero’s public API](https://external.docs.api.staging.energyzero.nl/docs/api/rest/public/public-api/). Its `base` stream supplies the raw market price in `€/kWh` at 15-minute resolution, without VAT or other additions. Laundry Window converts that stream to `€/MWh` internally and offers tomorrow as soon as both its prices and a valid washer setting are available.
+
+EnergyZero states that next-day electricity prices normally appear around **15:00**. The previous Utilitarian mirror sometimes lagged after the underlying market had already published; it has been removed from the application.
 
 Laundry Window evaluates the real duration of the selected programme against immediate Start now and every whole-hour Delay End choice from 3–19 hours. It recommends the reachable cycle with the lowest duration-weighted average market price. For today, it also shows the latest safe-start time that keeps the full cycle and selected safety margin inside the low-price band.
 

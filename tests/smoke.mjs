@@ -16,7 +16,7 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /src="https:\/\/cdnjs\.buymeacoffee\.com\/1\.0\.0\/button\.prod\.min\.js"/);
   assert.match(html, /data-slug="roels"/);
   assert.match(html, /data-text="Buy me a beer"/);
-  assert.match(html, /Utilitarian Spot/);
+  assert.match(html, /EnergyZero/);
   assert.match(html, /data-suggest-day="0"/);
   assert.match(html, /data-suggest-day="1"/);
   assert.match(html, /https:\/\/github\.com\/roelsroels\/laundry-window/);
@@ -38,6 +38,10 @@ test("only site assets live in the public web root", async () => {
 test("the market helper chooses the cheapest complete valid schedule", async () => {
   await import(new URL("html/market-prices.js", root));
   const market = globalThis.LaundryMarketPrices;
+  const energyZeroPoints = market.energyZeroPricePoints({ base: [{ start: "2026-01-01T00:00:00Z", end: "2026-01-01T00:15:00Z", price: { value: "0.14509" } }] });
+  assert.deepEqual(energyZeroPoints, [{ timestamp: "2026-01-01T00:00:00Z", value: 145.09 }]);
+  assert.match(market.priceUrl(new Date(2026, 0, 2)), /date=02-01-2026/);
+  assert.match(market.priceUrl(new Date(2026, 0, 2)), /interval=INTERVAL_QUARTER/);
   const start = new Date("2026-01-01T00:00:00Z").getTime();
   const points = Array.from({ length: 80 }, (_, index) => {
     const timestamp = new Date(start + index * 15 * 60000).toISOString();
@@ -131,6 +135,7 @@ test("the interface supports remembered English and Dutch translations", async (
   assert.match(script, /exacte marktkwartieren/);
   assert.match(script, /raw wholesale market price/);
   assert.match(script, /kale beursprijs/);
+  assert.match(script, /normally published around 15:00/);
 });
 
 test("the nginx example includes safe static defaults", async () => {
@@ -144,5 +149,5 @@ test("the nginx example includes safe static defaults", async () => {
   assert.match(config, /script-src 'self' https:\/\/cdnjs\.buymeacoffee\.com/);
   assert.match(config, /style-src 'self' 'unsafe-inline' https:\/\/fonts\.googleapis\.com/);
   assert.match(config, /font-src 'self' https:\/\/fonts\.gstatic\.com/);
-  assert.match(config, /connect-src https:\/\/spot\.utilitarian\.io/);
+  assert.match(config, /connect-src https:\/\/public\.api\.energyzero\.nl/);
 });

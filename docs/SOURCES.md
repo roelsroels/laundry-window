@@ -37,12 +37,14 @@ Laundry Window therefore centres a cycle within the selected cheap-energy window
 
 ## Market-price source
 
-The optional live suggestion uses the public Netherlands endpoint from [Utilitarian Spot](https://spot.utilitarian.io/developer/):
+The optional live suggestion uses [EnergyZero’s public price API](https://external.docs.api.staging.energyzero.nl/docs/api/rest/public/public-api/):
 
-`https://spot.utilitarian.io/electricity/NL/latest/`
+`https://public.api.energyzero.nl/public/v1/prices`
 
-The provider documents that the endpoint needs no API key, enables browser CORS requests, contains today and tomorrow when the day-ahead data is published, and returns timestamps in UTC with prices in `€/MWh`. It attributes the underlying records to the [ENTSO-E Transparency Platform](https://transparency.entsoe.eu/) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and describes the service as best-effort without uptime or accuracy guarantees.
+The request specifies electricity, a Dutch calendar date, and `INTERVAL_QUARTER`. No API key is required and the response permits browser CORS requests. Laundry Window reads only the `base` stream: raw market prices in `€/kWh` without VAT, purchasing fees, taxes, or other additions. It ignores the API’s `base_with_vat`, `all_in`, and `all_in_with_vat` streams.
 
-Laundry Window fetches the endpoint only after the user presses **Suggest window**. No selected programme, time, measured duration, or other browser-stored setting is included in the request. The optimiser compares only complete cycles permitted by the washing machine’s 3–19 hour Delay End choices and weights every covered market interval by the amount of the cycle that overlaps it.
+[EnergyZero’s consumer price page](https://consumenten.energyzero.nl/actuele-tarieven) states that next-day electricity prices normally appear around 15:00 and confirms quarter-hour pricing. On 12 August 2026, its API already returned all 96 quarter-hours for 13 August while the previous Utilitarian feed still contained only 12 August; this discrepancy prompted the provider switch.
+
+Laundry Window fetches the endpoint only after the user presses **Suggest today** or **Suggest tomorrow**. The request includes only the calendar date and fixed energy/interval parameters; no selected programme, measured duration, or other browser-stored setting is included. The optimiser compares immediate start and complete cycles permitted by the washing machine’s 3–19 hour Delay End choices, weighting every covered market interval by the amount of the cycle that overlaps it.
 
 The result is a market-price signal, not a complete consumer tariff. Taxes, VAT, supplier markups, and other contract-specific components are excluded.
