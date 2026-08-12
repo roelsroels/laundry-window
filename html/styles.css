@@ -25,6 +25,10 @@ main { min-height: 100vh; overflow: hidden; }
 .brand-mark::before { content: ""; width: 14px; height: 14px; border: 1.5px solid currentColor; border-radius: 50%; }
 .brand-mark i { position: absolute; width: 4px; height: 4px; background: var(--orange); border-radius: 50%; transform: translate(8px,-8px); }
 .model-chip { padding: 8px 12px; border: 1px solid rgba(21,45,39,.25); border-radius: 999px; font: 600 11px/1 var(--font-geist-mono), monospace; letter-spacing: .04em; }
+.header-tools { display: flex; align-items: center; gap: 10px; }
+.language-switch { display: flex; padding: 3px; gap: 2px; border: 1px solid rgba(21,45,39,.25); border-radius: 999px; background: rgba(255,255,255,.3); }
+.language-switch button { width: 32px; height: 27px; padding: 0; border: 0; border-radius: 999px; background: transparent; filter: grayscale(.75); opacity: .62; font-size: 17px; line-height: 1; }
+.language-switch button.active { background: var(--card); box-shadow: 0 1px 5px rgba(21,45,39,.16); filter: none; opacity: 1; }
 
 .hero { width: min(1180px, calc(100% - 40px)); min-height: 400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 420px; align-items: center; gap: 60px; padding: 54px 0 62px; }
 .eyebrow, .result-kicker { margin: 0 0 18px; font: 700 11px/1 var(--font-geist-mono), monospace; letter-spacing: .13em; }
@@ -51,6 +55,7 @@ main { min-height: 100vh; overflow: hidden; }
 .step-heading p { margin: 0; color: var(--muted); font-size: 13px; }
 .programme-heading { margin-top: 36px; }
 .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.window-context { margin: 9px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 label > span, .programme-select > span { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; }
 input, select { width: 100%; min-height: 50px; color: var(--ink); background: #f8f6f0; border: 1px solid var(--line); border-radius: 11px; padding: 0 13px; outline: none; transition: border-color .2s, box-shadow .2s; }
 input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(23,78,62,.12); }
@@ -73,7 +78,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .market-suggestion > small { grid-column: 1 / -1; color: var(--muted); font-size: 9px; line-height: 1.4; }
 .market-suggestion a { color: var(--green); font-weight: 700; }
 .advanced-toggle { width: 100%; margin-top: 28px; padding: 17px 0 5px; display: flex; justify-content: space-between; color: var(--ink); background: transparent; border: 0; border-top: 1px solid var(--line); font-size: 13px; font-weight: 700; text-align: left; }
-.advanced-toggle span { font-size: 20px; line-height: .7; font-weight: 400; }
+.advanced-toggle b { font: inherit; }.advanced-toggle span { font-size: 20px; line-height: .7; font-weight: 400; }
 .advanced-panel { margin-top: 14px; padding: 22px; border-radius: 14px; background: #eeece4; display: grid; gap: 20px; }
 .advanced-title h3 { margin: 0 0 3px; font-size: 15px; }
 .advanced-title p { margin: 0; color: var(--muted); font-size: 12px; }

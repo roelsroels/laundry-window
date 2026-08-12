@@ -4,10 +4,11 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url);
 
-test("the static entrypoint references the site assets and footer support button", async () => {
+test("the static entrypoint references site assets, languages, and footer support", async () => {
   const html = await readFile(new URL("html/index.html", root), "utf8");
   assert.match(html, /<title>Laundry Window/);
   assert.match(html, /href="styles\.css"/);
+  assert.match(html, /src="i18n\.js"/);
   assert.match(html, /src="market-prices\.js"/);
   assert.match(html, /src="app\.js"/);
   assert.match(html, /Samsung WF702Y4BKWQ\/EN/);
@@ -22,6 +23,7 @@ test("only site assets live in the public web root", async () => {
   await Promise.all([
     access(new URL("html/index.html", root)),
     access(new URL("html/styles.css", root)),
+    access(new URL("html/i18n.js", root)),
     access(new URL("html/app.js", root)),
     access(new URL("html/market-prices.js", root)),
   ]);
@@ -75,6 +77,18 @@ test("the official programme durations remain present", async () => {
   assert.match(script, /length: 17/);
   assert.match(script, /preferredProgramId = "dark"/);
   assert.match(script, /washer-preferred-program/);
+  assert.match(script, /shouldReoptimise/);
+  assert.match(script, /safetyTitle/);
+});
+
+test("the interface supports remembered English and Dutch translations", async () => {
+  const script = await readFile(new URL("html/i18n.js", root), "utf8");
+  assert.match(script, /laundry-language/);
+  assert.match(script, /Set the delay/);
+  assert.match(script, /Stel de tijd in/);
+  assert.match(script, /marketEnvelope/);
+  assert.match(script, /exact 15-minute market intervals/);
+  assert.match(script, /exact marktkwartier/);
 });
 
 test("the nginx example includes safe static defaults", async () => {

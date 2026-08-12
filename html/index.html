@@ -7,40 +7,41 @@
   <meta name="theme-color" content="#174e3e">
   <title>Laundry Window · Samsung Delay End calculator</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="i18n.js" defer></script>
   <script src="market-prices.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
   <main>
     <header class="site-header">
-      <a class="brand" href="#top" aria-label="Laundry Window home">
+      <a class="brand" href="#top" aria-label="Laundry Window home" data-i18n-aria="homeLabel">
         <span class="brand-mark" aria-hidden="true"><i></i></span>
         Laundry Window
       </a>
-      <span class="model-chip">Samsung WF702Y4BKWQ/EN</span>
+      <div class="header-tools"><span class="model-chip">Samsung WF702Y4BKWQ/EN</span><div class="language-switch" role="group" aria-label="Language" data-i18n-aria="languageLabel"><button type="button" data-language="nl" aria-label="Nederlands" data-i18n-aria="dutchLabel">🇳🇱</button><button type="button" data-language="en" aria-label="English" data-i18n-aria="englishLabel">🇺🇸</button></div></div>
     </header>
 
     <section class="hero" id="top">
       <div class="hero-copy">
-        <p class="eyebrow">CHEAP-ENERGY WASH PLANNER</p>
-        <h1>Set the delay.<br>Skip the maths.</h1>
-        <p class="intro">Tell me when electricity is cheap and what you’re washing. I’ll tell you exactly what to select on <strong>Delay End</strong>.</p>
+        <p class="eyebrow" data-i18n="heroEyebrow">CHEAP-ENERGY WASH PLANNER</p>
+        <h1 data-i18n-html="heroTitle">Set the delay.<br>Skip the maths.</h1>
+        <p class="intro" data-i18n-html="heroIntro">Tell me when electricity is cheap and what you’re washing. I’ll tell you exactly what to select on <strong>Delay End</strong>.</p>
       </div>
       <div class="dial-art" aria-hidden="true">
         <span class="dial-label dial-label-top">3h</span>
         <span class="dial-label dial-label-right">19h</span>
         <div class="dial-ring"><span></span></div>
-        <small>DELAY END</small>
+        <small data-i18n="delayEnd">DELAY END</small>
       </div>
     </section>
 
-    <section class="planner" aria-label="Delay End calculator">
+    <section class="planner" aria-label="Delay End calculator" data-i18n-aria="plannerLabel">
       <form class="input-panel" id="planner-form">
         <div class="step-heading">
           <span>1</span>
-          <div><h2>Washing programme</h2><p>Official baseline time, with your preferred programme remembered locally.</p></div>
+          <div><h2 data-i18n="programHeading">Washing programme</h2><p data-i18n="programIntro">Official baseline time, with your preferred programme remembered locally.</p></div>
         </div>
-        <label class="programme-select"><span>Programme</span><select id="programme"></select></label>
+        <label class="programme-select"><span data-i18n="programLabel">Programme</span><select id="programme"></select></label>
         <div class="programme-preference">
           <span id="preferred-programme-label"></span>
           <button id="set-preferred-programme" type="button">Make selected preferred</button>
@@ -48,93 +49,94 @@
 
         <div class="step-heading programme-heading">
           <span>2</span>
-          <div><h2>Cheap energy window</h2><p>Enter it yourself or ask for the cheapest available fit.</p></div>
+          <div><h2 data-i18n="windowHeading">Cheap energy window</h2><p data-i18n="windowIntro">Enter it yourself or ask for the cheapest available fit.</p></div>
         </div>
         <div class="field-grid">
-          <label><span>Starts</span><input id="cheap-start" type="datetime-local" required></label>
-          <label><span>Ends</span><input id="cheap-end" type="datetime-local" required></label>
+          <label><span data-i18n="starts">Starts</span><input id="cheap-start" type="datetime-local" required></label>
+          <label><span data-i18n="ends">Ends</span><input id="cheap-end" type="datetime-local" required></label>
         </div>
+        <p class="window-context" id="window-context"></p>
 
         <div class="market-suggestion">
           <div class="market-heading">
-            <span>DUTCH DAY-AHEAD PRICES</span>
-            <strong>Find the cheapest fit</strong>
-            <p>Compares every valid Delay End setting for this programme.</p>
+            <span data-i18n="marketEyebrow">DUTCH DAY-AHEAD PRICES</span>
+            <strong data-i18n="marketHeading">Find the cheapest fit</strong>
+            <p data-i18n="marketIntro">Compares every valid Delay End setting for this programme.</p>
           </div>
-          <button id="suggest-market-window" type="button">Suggest window</button>
-          <p class="market-status" id="market-status" aria-live="polite">Fetched only when you ask. Market price excludes tax and supplier fees.</p>
-          <small>Source: <a href="https://spot.utilitarian.io/developer/" rel="noreferrer">Utilitarian Spot</a> using <a href="https://transparency.entsoe.eu/" rel="noreferrer">ENTSO-E</a> data (CC BY 4.0).</small>
+          <button id="suggest-market-window" type="button" data-i18n="suggest">Suggest window</button>
+          <p class="market-status" id="market-status" aria-live="polite" data-i18n="marketDefault">Fetched only when you ask. Market price excludes tax and supplier fees.</p>
+          <small data-i18n-html="marketSource">Source: <a href="https://spot.utilitarian.io/developer/" rel="noreferrer">Utilitarian Spot</a> using <a href="https://transparency.entsoe.eu/" rel="noreferrer">ENTSO-E</a> data (CC BY 4.0).</small>
         </div>
 
-        <button class="advanced-toggle" id="advanced-toggle" type="button" aria-expanded="false">Fine-tune <span aria-hidden="true">+</span></button>
+        <button class="advanced-toggle" id="advanced-toggle" type="button" aria-expanded="false"><b data-i18n="fineTune">Fine-tune</b> <span aria-hidden="true">+</span></button>
         <div class="advanced-panel" id="advanced-panel" hidden>
-          <div class="advanced-title"><h3>Make it match your machine</h3><p>Optional—defaults already work.</p></div>
+          <div class="advanced-title"><h3 data-i18n="tuneHeading">Make it match your machine</h3><p data-i18n="tuneIntro">Optional—defaults already work.</p></div>
           <label>
-            <span>Setting the machine at</span>
-            <div class="input-with-button"><input id="planning-time" type="datetime-local"><button id="use-now" type="button">Now</button></div>
+            <span data-i18n="settingAt">Setting the machine at</span>
+            <div class="input-with-button"><input id="planning-time" type="datetime-local"><button id="use-now" type="button" data-i18n="now">Now</button></div>
           </label>
           <div class="field-grid compact">
             <label>
-              <span>Your measured programme time</span>
+              <span data-i18n="measured">Your measured programme time</span>
               <div class="suffix-input"><input id="measured-time" type="number" min="1" max="600"><em>min</em></div>
-              <small id="measured-note">Saved on this device.</small>
+              <small id="measured-note" data-i18n="savedDevice">Saved on this device.</small>
             </label>
             <label>
-              <span>Edge safety margin</span>
-              <select id="safety-margin"><option value="0">No margin</option><option value="10">10 minutes</option><option value="15" selected>15 minutes</option><option value="30">30 minutes</option></select>
+              <span data-i18n="margin">Edge safety margin</span>
+              <select id="safety-margin"><option value="0" data-i18n="noMargin">No margin</option><option value="10">10 minutes</option><option value="15" selected>15 minutes</option><option value="30">30 minutes</option></select>
             </label>
           </div>
           <label class="check-row">
             <input id="prewash" type="checkbox">
-            <span><strong>Add prewash</strong><small>Samsung says this adds about 18 minutes.</small></span>
+            <span><strong data-i18n="addPrewash">Add prewash</strong><small data-i18n="prewashNote">Samsung says this adds about 18 minutes.</small></span>
           </label>
         </div>
       </form>
 
       <aside class="result-panel" id="result" aria-live="polite">
-        <p class="result-kicker">SELECT ON THE MACHINE</p>
+        <p class="result-kicker" data-i18n="selectMachine">SELECT ON THE MACHINE</p>
         <div id="result-content">
-          <div class="empty-result"><div class="empty-dial" aria-hidden="true">—</div><h2>Ready when you are</h2><p>Choose a valid window to see the Delay End setting.</p></div>
+          <div class="empty-result"><div class="empty-dial" aria-hidden="true">—</div><h2 data-i18n="readyHeading">Ready when you are</h2><p data-i18n="readyText">Choose a valid window to see the Delay End setting.</p></div>
         </div>
       </aside>
     </section>
 
     <section class="how-it-works">
-      <div><p class="eyebrow">WHY THIS NUMBER?</p><h2>The button chooses when the wash <em>ends</em>.</h2></div>
+      <div><p class="eyebrow" data-i18n="whyEyebrow">WHY THIS NUMBER?</p><h2 data-i18n-html="whyTitle">The button chooses when the wash <em>ends</em>.</h2></div>
       <ol>
-        <li><span>01</span><p>The machine accepts only whole-hour settings from <strong>3 to 19 hours</strong>.</p></li>
-        <li><span>02</span><p>We subtract the programme time to check that the wash <strong>starts after cheap energy begins</strong>.</p></li>
-        <li><span>03</span><p>We centre the cycle in the window where possible, leaving room for <strong>real-world timing drift</strong>.</p></li>
+        <li><span>01</span><p data-i18n-html="why1">The machine accepts only whole-hour settings from <strong>3 to 19 hours</strong>.</p></li>
+        <li><span>02</span><p data-i18n-html="why2">We subtract the programme time to check that the wash <strong>starts after cheap energy begins</strong>.</p></li>
+        <li><span>03</span><p data-i18n-html="why3">We centre the cycle in the window where possible, leaving room for <strong>real-world timing drift</strong>.</p></li>
       </ol>
     </section>
 
     <details class="programme-reference">
-      <summary><span>Official programme-time reference</span><small>Samsung manual · page 37</small></summary>
+      <summary><span data-i18n="reference">Official programme-time reference</span><small data-i18n="manualPage">Samsung manual · page 37</small></summary>
       <div class="reference-grid" id="reference-grid"></div>
-      <p>Quick wash can be selected at 15, 20, 30, 40, 50 or 60 minutes. Actual times can vary with water pressure and temperature, load, fabric and selected options. Intensive wash extends every cycle; use the measured-time field when you use it. <a class="source-link" href="https://www.samsung.com/nl/support/model.WF702Y4BKWQ_EN/" rel="noreferrer">Official Samsung support page</a>.</p>
+      <p data-i18n-html="referenceText">Quick wash can be selected at 15, 20, 30, 40, 50 or 60 minutes. Actual times can vary with water pressure and temperature, load, fabric and selected options. Intensive wash extends every cycle; use the measured-time field when you use it. <a class="source-link" href="https://www.samsung.com/nl/support/model.WF702Y4BKWQ_EN/" rel="noreferrer">Official Samsung support page</a>.</p>
     </details>
 
     <section class="compatibility-section" aria-labelledby="compatibility-heading">
       <div class="compatibility-intro">
-        <p class="eyebrow">COMPATIBILITY</p>
-        <h2 id="compatibility-heading">Built for one Samsung family.<br><em>More machines later.</em></h2>
-        <p>The timings and Delay End rules currently come from one shared Samsung manual. No other brand is assumed compatible yet.</p>
+        <p class="eyebrow" data-i18n="compatibility">COMPATIBILITY</p>
+        <h2 id="compatibility-heading" data-i18n-html="compatibilityTitle">Built for one Samsung family.<br><em>More machines later.</em></h2>
+        <p data-i18n="compatibilityIntro">The timings and Delay End rules currently come from one shared Samsung manual. No other brand is assumed compatible yet.</p>
       </div>
       <div class="compatibility-cards">
         <article class="compat-card verified-card">
-          <span class="compat-status">PHYSICALLY VERIFIED</span>
+          <span class="compat-status" data-i18n="verified">PHYSICALLY VERIFIED</span>
           <h3>WF702Y4BKWQ/EN</h3>
-          <p>The exact machine used to create and check this calculator.</p>
+          <p data-i18n="exactMachine">The exact machine used to create and check this calculator.</p>
         </article>
         <article class="compat-card">
-          <span class="compat-status">SAME SAMSUNG MANUAL</span>
+          <span class="compat-status" data-i18n="sameManual">SAME SAMSUNG MANUAL</span>
           <h3>WF702 · WF700 · WF602 · WF600</h3>
-          <p>Y4BK and B4BK families are covered by the same official programme table. Regional suffixes may differ.</p>
+          <p data-i18n="familyText">Y4BK and B4BK families are covered by the same official programme table. Regional suffixes may differ.</p>
         </article>
         <article class="compat-card future-card">
-          <span class="compat-status">FUTURE</span>
-          <h3>Other brands &amp; models</h3>
-          <p>The programme data is isolated in the app, ready for model selection and additional verified manuals later.</p>
+          <span class="compat-status" data-i18n="future">FUTURE</span>
+          <h3 data-i18n-html="otherModels">Other brands &amp; models</h3>
+          <p data-i18n="futureText">The programme data is isolated in the app, ready for model selection and additional verified manuals later.</p>
         </article>
       </div>
     </section>
@@ -142,7 +144,7 @@
     <footer>
       <div class="footer-copy">
         <span>Laundry Window</span>
-        <p>Made for one very specific Samsung—and one less piece of mental arithmetic.</p>
+        <p data-i18n="footerText">Made for one very specific Samsung—and one less piece of mental arithmetic.</p>
       </div>
       <div class="footer-support">
         <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="roels" data-color="#40DCA5" data-emoji="🍺"  data-font="Bree" data-text="Buy me a beer" data-outline-color="#000000" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>
