@@ -22,9 +22,17 @@
   const form = $("#planner-form");
   const programme = $("#programme");
   const measured = $("#measured-time");
+  const marketButton = $("#suggest-market-window");
+  const marketPrices = window.LaundryMarketPrices;
   let overrides = {};
+  let preferredProgramId = "dark";
+  let suggestionActive = false;
 
   try { overrides = JSON.parse(localStorage.getItem("washer-program-overrides") || "{}"); } catch (_) { overrides = {}; }
+  try {
+    const savedPreference = localStorage.getItem("washer-preferred-program");
+    if (PROGRAMS.some((item) => item.id === savedPreference)) preferredProgramId = savedPreference;
+  } catch (_) {}
 
   function inputValue(date) {
     return new Date(date.getTime() - date.getTimezoneOffset() * minute).toISOString().slice(0, 16);
@@ -60,6 +68,11 @@
     return PROGRAMS.find((item) => item.id === programme.value) || PROGRAMS[0];
   }
 
+  function cycleMinutes() {
+    const selected = currentProgram();
+    return (overrides[selected.id] || selected.minutes) + ($("#prewash").checked ? 18 : 0);
+  }
+
   function fillProgrammes() {
     ["Dial programmes", "Quick wash button"].forEach((groupName) => {
       const group = document.createElement("optgroup");
@@ -72,7 +85,7 @@
       });
       programme.append(group);
     });
-    programme.value = "cotton";
+    programme.value = preferredProgramId;
 
     PROGRAMS.filter((item) => item.group === "Dial programmes").forEach((item) => {
       const row = document.createElement("div");
@@ -92,6 +105,79 @@
     $("#measured-note").textContent = `Saved on this device for ${selected.name}.`;
   }
 
+  function updatePreferenceControls() {
+    const preferred = PROGRAMS.find((item) => item.id === preferredProgramId) || PROGRAMS.find((item) => item.id === "dark");
+    const button = $("#set-preferred-programme");
+    const selectedIsPreferred = programme.value === preferred.id;
+    $("#preferred-programme-label").textContent = `Preferred in this browser: ${preferred.name}.`;
+    button.textContent = selectedIsPreferred ? "Preferred" : "Make selected preferred";
+    button.disabled = selectedIsPreferred;
+  }
+
+  function savePreferredProgram() {
+    preferredProgramId = programme.value;
+    try { localStorage.setItem("washer-preferred-program", preferredProgramId); } catch (_) {}
+    updatePreferenceControls();
+  }
+
+  function setMarketStatus(message, state = "") {
+    const status = $("#market-status");
+    status.textContent = message;
+    status.dataset.state = state;
+  }
+
+  function invalidateSuggestion() {
+    if (!suggestionActive) return;
+    suggestionActive = false;
+    setMarketStatus("The settings changed. Ask again to recalculate the cheapest fit.");
+  }
+
+  function marketPriceText(pricePerMwh) {
+    return new Intl.NumberFormat("en-GB", { minimumFractionDigits: 1, maximumFractionDigits: 2 }).format(pricePerMwh / 10);
+  }
+
+  async function suggestMarketWindow() {
+    const planning = new Date($("#planning-time").value);
+    if (Number.isNaN(planning.getTime())) {
+      setMarketStatus("Choose a valid machine-setting time first.", "error");
+      return;
+    }
+
+    marketButton.disabled = true;
+    marketButton.textContent = "Checking prices…";
+    setMarketStatus("Fetching the latest published Dutch day-ahead prices…");
+
+    try {
+      const response = await fetch(marketPrices.API_URL);
+      if (!response.ok) throw new Error(`Price service returned ${response.status}`);
+      const points = await response.json();
+      const best = marketPrices.findCheapestSchedule(points, planning, cycleMinutes());
+      const intervals = marketPrices.normalisePricePoints(points);
+      if (!intervals.length) throw new Error("The price feed returned no usable values");
+
+      if (!best) {
+        setMarketStatus("No complete wash fits the currently published prices and the machine’s 3–19 hour range. If tomorrow is not available yet, try again after 13:00.", "error");
+        return;
+      }
+
+      const margin = Number($("#safety-margin").value);
+      const windowStart = new Date(best.start - margin * minute);
+      const windowEnd = new Date(best.end + margin * minute);
+      $("#cheap-start").value = inputValue(windowStart);
+      $("#cheap-end").value = inputValue(windowEnd);
+      suggestionActive = true;
+      calculate();
+
+      const availableUntil = new Date(intervals[intervals.length - 1].end);
+      setMarketStatus(`Best published fit for ${currentProgram().name}: ${momentText(new Date(best.start))}–${momentText(new Date(best.end))}, averaging ${marketPriceText(best.average)} ct/kWh. Prices available through ${momentText(availableUntil)}.`, "success");
+    } catch (_) {
+      setMarketStatus("Live prices could not be loaded. Manual window entry still works; please try the suggestion again later.", "error");
+    } finally {
+      marketButton.disabled = false;
+      marketButton.textContent = "Suggest window";
+    }
+  }
+
   function overlap(start, end, windowStart, windowEnd) {
     return Math.max(0, (Math.min(end, windowEnd) - Math.max(start, windowStart)) / minute);
   }
@@ -102,14 +188,14 @@
     const windowEnd = new Date($("#cheap-end").value);
     const selected = currentProgram();
     const margin = Number($("#safety-margin").value);
-    const cycleMinutes = (overrides[selected.id] || selected.minutes) + ($("#prewash").checked ? 18 : 0);
+    const plannedMinutes = cycleMinutes();
 
     if ([planning, windowStart, windowEnd].some((date) => Number.isNaN(date.getTime()))) return renderError("Choose a valid date and time.");
     if (windowEnd <= windowStart) return renderError("The cheap-price end must be after its start.");
 
     const schedules = Array.from({ length: 17 }, (_, index) => index + 3).map((delayHours) => {
       const end = new Date(planning.getTime() + delayHours * hour);
-      const start = new Date(end.getTime() - cycleMinutes * minute);
+      const start = new Date(end.getTime() - plannedMinutes * minute);
       return { delayHours, start, end, overlapMinutes: overlap(start, end, windowStart, windowEnd) };
     });
 
@@ -120,16 +206,16 @@
     if (fitting.length) {
       const centre = (windowStart.getTime() + windowEnd.getTime()) / 2;
       fitting.sort((a, b) => Math.abs((a.start.getTime() + a.end.getTime()) / 2 - centre) - Math.abs((b.start.getTime() + b.end.getTime()) / 2 - centre));
-      return renderSchedule(fitting[0], selected, cycleMinutes, windowStart, windowEnd, true);
+      return renderSchedule(fitting[0], selected, plannedMinutes, windowStart, windowEnd, true);
     }
 
     schedules.sort((a, b) => b.overlapMinutes - a.overlapMinutes);
     let message = "No whole-hour Delay End setting keeps this complete cycle inside the window.";
     const windowMinutes = (windowEnd - windowStart) / minute;
-    if (cycleMinutes + margin * 2 > windowMinutes) message = "This programme is longer than the cheap-price window (including your margin).";
+    if (plannedMinutes + margin * 2 > windowMinutes) message = "This programme is longer than the cheap-price window (including your margin).";
     else if (windowEnd.getTime() < planning.getTime() + 3 * hour) message = "This window ends before the machine’s minimum 3-hour Delay End setting.";
     else if (windowStart.getTime() > planning.getTime() + 19 * hour) message = "This window starts beyond the machine’s 19-hour Delay End limit.";
-    renderSchedule(schedules[0], selected, cycleMinutes, windowStart, windowEnd, false, message, Math.round(schedules[0].overlapMinutes / cycleMinutes * 100));
+    renderSchedule(schedules[0], selected, plannedMinutes, windowStart, windowEnd, false, message, Math.round(schedules[0].overlapMinutes / plannedMinutes * 100));
   }
 
   function renderError(message) {
@@ -163,6 +249,7 @@
   }
 
   function useNow() {
+    invalidateSuggestion();
     $("#planning-time").value = inputValue(new Date());
     calculate();
   }
@@ -174,6 +261,7 @@
   $("#cheap-start").value = inputValue(cheap.start);
   $("#cheap-end").value = inputValue(cheap.end);
   updateMeasuredField();
+  updatePreferenceControls();
 
   $("#advanced-toggle").addEventListener("click", () => {
     const panel = $("#advanced-panel");
@@ -182,15 +270,18 @@
     $("#advanced-toggle span").textContent = panel.hidden ? "+" : "−";
   });
   $("#use-now").addEventListener("click", useNow);
-  programme.addEventListener("change", () => { updateMeasuredField(); calculate(); });
+  $("#set-preferred-programme").addEventListener("click", savePreferredProgram);
+  marketButton.addEventListener("click", suggestMarketWindow);
+  programme.addEventListener("change", () => { invalidateSuggestion(); updateMeasuredField(); updatePreferenceControls(); calculate(); });
   measured.addEventListener("input", () => {
+    invalidateSuggestion();
     const selected = currentProgram();
     const value = Number(measured.value);
     if (measured.value && value > 0) overrides[selected.id] = Math.round(value); else delete overrides[selected.id];
     try { localStorage.setItem("washer-program-overrides", JSON.stringify(overrides)); } catch (_) {}
     calculate();
   });
-  form.addEventListener("input", (event) => { if (event.target !== measured) calculate(); });
+  form.addEventListener("input", (event) => { if (event.target !== measured) { invalidateSuggestion(); calculate(); } });
   form.addEventListener("submit", (event) => event.preventDefault());
   calculate();
 })();

@@ -34,3 +34,15 @@ No compatibility is currently claimed for other Samsung ranges or other brands. 
 The manual says the listed durations were measured under IEC 60456 / EN 60456 conditions. Samsung warns that actual values can differ due to water pressure and temperature, load, and fabric type. The Intensive option extends every cycle, but the manual does not specify a fixed duration.
 
 Laundry Window therefore centres a cycle within the selected cheap-energy window when possible and applies a 15-minute margin by default. Users can store a measured duration for each programme in their own browser. Those overrides never leave the device.
+
+## Market-price source
+
+The optional live suggestion uses the public Netherlands endpoint from [Utilitarian Spot](https://spot.utilitarian.io/developer/):
+
+`https://spot.utilitarian.io/electricity/NL/latest/`
+
+The provider documents that the endpoint needs no API key, enables browser CORS requests, contains today and tomorrow when the day-ahead data is published, and returns timestamps in UTC with prices in `€/MWh`. It attributes the underlying records to the [ENTSO-E Transparency Platform](https://transparency.entsoe.eu/) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and describes the service as best-effort without uptime or accuracy guarantees.
+
+Laundry Window fetches the endpoint only after the user presses **Suggest window**. No selected programme, time, measured duration, or other browser-stored setting is included in the request. The optimiser compares only complete cycles permitted by the washing machine’s 3–19 hour Delay End choices and weights every covered market interval by the amount of the cycle that overlaps it.
+
+The result is a market-price signal, not a complete consumer tariff. Taxes, VAT, supplier markups, and other contract-specific components are excluded.
