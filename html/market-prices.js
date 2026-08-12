@@ -84,10 +84,12 @@
 
     const intervals = normalisePricePoints(rawPoints);
     const bounds = dayOffset === null ? null : localDayBounds(planningDate, dayOffset);
-    const candidates = Array.from({ length: 17 }, (_, index) => index + 3).map((delayHours) => {
+    const delayChoices = dayOffset === 0 ? [0, ...Array.from({ length: 17 }, (_, index) => index + 3)] : Array.from({ length: 17 }, (_, index) => index + 3);
+    const candidates = delayChoices.map((delayHours) => {
       const end = planning + delayHours * hour;
-      const start = end - cycleMinutes * minute;
-      return { delayHours, start, end, average: averagePrice(start, end, intervals) };
+      const start = delayHours === 0 ? planning : end - cycleMinutes * minute;
+      const actualEnd = delayHours === 0 ? planning + cycleMinutes * minute : end;
+      return { delayHours, start, end: actualEnd, average: averagePrice(start, actualEnd, intervals) };
     }).filter((candidate) => candidate.average !== null && (!bounds || (candidate.start >= bounds.start && candidate.end <= bounds.end)));
 
     candidates.sort((a, b) => a.average - b.average || a.delayHours - b.delayHours);
@@ -103,6 +105,12 @@
     };
   }
 
+  function latestSafeStart(windowEnd, cycleMinutes, marginMinutes) {
+    const end = new Date(windowEnd).getTime();
+    if (![end, cycleMinutes, marginMinutes].every(Number.isFinite) || cycleMinutes <= 0 || marginMinutes < 0) return null;
+    return end - (cycleMinutes + marginMinutes) * minute;
+  }
+
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, normalisePricePoints, timelineCoverage };
+  scope.LaundryMarketPrices = { API_URL, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, latestSafeStart, normalisePricePoints, timelineCoverage };
 })();
