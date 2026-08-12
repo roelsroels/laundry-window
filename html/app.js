@@ -314,11 +314,15 @@
       const response = await fetch(marketPrices.priceUrl(planning));
       if (!response.ok) throw new Error(`Price service returned ${response.status}`);
       const points = marketPrices.energyZeroPricePoints(await response.json());
-      const timerRange = currentMachine().timerRange;
-      const best = marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange);
       const cheapWindow = marketPrices.findLowPriceWindow(points, planning, dayOffset);
       const intervals = marketPrices.normalisePricePoints(points);
       if (!intervals.length) throw new Error("The price feed returned no usable values");
+      const timerRange = currentMachine().timerRange;
+      const best = cheapWindow ? marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange, {
+        start: cheapWindow.start,
+        end: cheapWindow.end,
+        marginMinutes: Number($("#safety-margin").value)
+      }) : null;
 
       if (!best || !cheapWindow) {
         const unavailable = dayOffset === 1 && !marketPrices.hasPricesForDay(points, planning, dayOffset);
@@ -372,7 +376,7 @@
 
     if (marketSchedule && fitting.includes(marketSchedule)) return renderSchedule(marketSchedule, selected, plannedMinutes, windowStart, windowEnd, true);
 
-    if (!marketSchedule && fitting.length) {
+    if (fitting.length) {
       const centre = (windowStart.getTime() + windowEnd.getTime()) / 2;
       fitting.sort((a, b) => Math.abs((a.start.getTime() + a.end.getTime()) / 2 - centre) - Math.abs((b.start.getTime() + b.end.getTime()) / 2 - centre));
       return renderSchedule(fitting[0], selected, plannedMinutes, windowStart, windowEnd, true);

@@ -97,7 +97,7 @@
     return best ? { start: best.start, end: best.end, average: best.weighted / best.duration, threshold } : null;
   }
 
-  function findCheapestSchedule(rawPoints, planningDate, cycleMinutes, dayOffset = null, timerRange = { min: 3, max: 19 }) {
+  function findCheapestSchedule(rawPoints, planningDate, cycleMinutes, dayOffset = null, timerRange = { min: 3, max: 19 }, preferredWindow = null) {
     const planning = new Date(planningDate).getTime();
     if (!Number.isFinite(planning) || !Number.isFinite(cycleMinutes) || cycleMinutes <= 0) return null;
 
@@ -115,8 +115,28 @@
       return { delayHours, start, end: actualEnd, average: averagePrice(start, actualEnd, intervals) };
     }).filter((candidate) => candidate.average !== null && (candidate.delayHours === 0 || candidate.start >= planning) && (!bounds || (candidate.start >= bounds.start && candidate.end <= bounds.end)));
 
+    if (!candidates.length) return null;
+    const windowStart = Number(preferredWindow?.start);
+    const windowEnd = Number(preferredWindow?.end);
+    const marginMinutes = Math.max(0, Number(preferredWindow?.marginMinutes) || 0);
+    if (Number.isFinite(windowStart) && Number.isFinite(windowEnd) && windowEnd > windowStart) {
+      const protectedStart = windowStart + marginMinutes * minute;
+      const protectedEnd = windowEnd - marginMinutes * minute;
+      const completeFits = candidates.filter((candidate) => candidate.start >= protectedStart && candidate.end <= protectedEnd);
+      if (completeFits.length) {
+        completeFits.sort((a, b) => a.average - b.average || a.delayHours - b.delayHours);
+        return completeFits[0];
+      }
+
+      candidates.forEach((candidate) => {
+        candidate.windowOverlap = Math.max(0, Math.min(candidate.end, windowEnd) - Math.max(candidate.start, windowStart));
+      });
+      candidates.sort((a, b) => b.windowOverlap - a.windowOverlap || a.average - b.average || a.delayHours - b.delayHours);
+      return candidates[0];
+    }
+
     candidates.sort((a, b) => a.average - b.average || a.delayHours - b.delayHours);
-    return candidates[0] || null;
+    return candidates[0];
   }
 
   function timelineCoverage(schedule, windowStart, windowEnd, cycleMinutes) {
