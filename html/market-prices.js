@@ -157,6 +157,22 @@
     return candidates[0] || null;
   }
 
+  function choosePracticalSchedule(currentSchedule, waitSchedule, planningDate, preferredWindow) {
+    const planning = new Date(planningDate).getTime();
+    const windowStart = Number(preferredWindow?.start);
+    const windowEnd = Number(preferredWindow?.end);
+    const marginMinutes = Math.max(0, Number(preferredWindow?.marginMinutes) || 0);
+    const protectedStart = windowStart + marginMinutes * minute;
+    const protectedEnd = windowEnd - marginMinutes * minute;
+    const currentComplete = currentSchedule
+      && currentSchedule.start >= protectedStart
+      && currentSchedule.end <= protectedEnd;
+
+    if (currentComplete) return { ...currentSchedule, activationTime: planning };
+    if (waitSchedule) return waitSchedule;
+    return currentSchedule ? { ...currentSchedule, activationTime: planning } : null;
+  }
+
   function findLowPriceWindow(rawPoints, planningDate, dayOffset) {
     const bounds = localDayBounds(planningDate, dayOffset);
     const intervals = normalisePricePoints(rawPoints)
@@ -236,5 +252,5 @@
   }
 
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findCheapestWaitSchedule, findLowPriceWindow, findWaitSchedule, hasPricesForDay, isPastTodayWindow, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices };
+  scope.LaundryMarketPrices = { API_URL, choosePracticalSchedule, energyZeroPricePoints, findCheapestSchedule, findCheapestWaitSchedule, findLowPriceWindow, findWaitSchedule, hasPricesForDay, isPastTodayWindow, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices };
 })();
