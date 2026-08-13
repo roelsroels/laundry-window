@@ -62,6 +62,35 @@ The Bosch profile uses its own **Klaar in / Ready in** range of 1–24 hours and
 
 Other models are **not assumed compatible** unless listed above. The profiles are isolated in `html/app.js`, so another verified machine can be added without reusing durations or timer rules from an unrelated model.
 
+## Add another washing machine
+
+A new brand, series, or exact model should get its own profile. Do not copy programme durations or finish-timer behaviour from a machine that merely looks similar: both can differ between regional variants.
+
+### Information to collect
+
+1. Photograph the complete identification label inside the door, around the hatch, or on the rear of the machine. The important field may be called **model code**, **E-Nr.**, **product number**, **PNC**, **service number**, or something similar. Make sure the brand and full suffix are readable. A serial number is normally unnecessary and may be covered before sharing the photo.
+2. Photograph the full control panel so every programme, option, and timer button is visible. A close-up of the finish-timer button and display is useful as well.
+3. If possible, photograph the displayed duration after selecting each programme with its normal/default options. Record the temperature or other setting whenever it changes the duration.
+4. Share the official manual or product page if you have it. Otherwise, the exact identifier from the first photo should be used to find the manufacturer's documentation.
+5. Confirm how the timer works: does its number mean **starts in**, **ends in**, **Delay End**, **Ready in**, or something else? Also record its minimum, maximum, and increment, such as 1–24 hours in whole-hour steps.
+
+Published durations should come from the official manual or another model-specific manufacturer source whenever possible. A time observed on the display is useful supporting evidence but can vary with options, load sensing, water temperature, or programme optimisation. If no trustworthy single baseline exists, leave that programme out rather than inventing one; users can still enter a measured duration in the interface.
+
+### Implementation checklist
+
+- Add one entry to `MACHINES` in [`html/app.js`](html/app.js) with a unique stable `id`, brand, exact model, timer label and range, prewash addition if documented, default programme, groups, and model-specific programme durations in minutes.
+- Add every new machine, group, programme, timer, manual, and reference translation to both English and Dutch in [`html/i18n.js`](html/i18n.js). Avoid using one model's translation key for a programme whose meaning differs on another model.
+- Add the exact sources, page or table references, timer semantics, duration caveats, and the distinction between physically verified and manual-only compatibility to [`docs/SOURCES.md`](docs/SOURCES.md).
+- Update the compatibility table and add a baseline-duration table to this README. Claim series-wide compatibility only when the manufacturer places those models under the same applicable manual or programme table.
+- Extend [`tests/smoke.mjs`](tests/smoke.mjs) to lock in the new model identifier, timer range, default programme, programme IDs and durations, translations, and any special calculation behaviour.
+- Run `node --check html/app.js`, `node --check html/i18n.js`, `node --test tests/smoke.mjs`, and `git diff --check`. Test the selector, remembered preference, measured-time override, immediate start, and earliest/latest finish-timer values in both languages. Update the README screenshots if the visible interface changed materially.
+
+### Copyable request prompt
+
+Attach the identification-label and control-panel photos, then use this self-contained request. Replace the bracketed preferred programme if you already know it:
+
+> Work on the Laundry Window project at <https://github.com/roelsroels/laundry-window> (live site: <https://roelsroels.github.io/laundry-window/>). Laundry Window is a browser-only static calculator that combines a washing machine's programme duration and finish-timer controls with a cheap electricity-price window. Inspect the repository and its existing Samsung and Bosch profiles before changing anything, then add my washing machine as a separate, model-specific profile. The attached photos show its identification label/E-number and complete control panel. Read the exact model identifier from the label, then find the official manufacturer manual or programme table. Verify the programme names, default durations, finish-timer meaning, minimum/maximum range, increments, and any documented prewash addition. Do not reuse times from another model and do not invent durations that are not supported by a trustworthy source. If the evidence covers a wider series, list the exact compatible model patterns and explain why; otherwise support only this exact model. My most-used programme is **[programme name]**; make that the initial preferred programme if it can be verified. Add complete English and Dutch text, source notes and caveats, compatibility and duration tables in the README, and regression tests. Preserve browser-only storage and keep all public website code under `html/`. Run the repository checks and show me any assumptions or programmes that could not be verified before publishing. Prepare the change on a branch and, if I authorize publishing, commit it, push it, open and merge a pull request, deploy GitHub Pages, and verify the live site.
+
 ## Run locally
 
 Open `html/index.html` directly, or serve only the `html/` web root. For example:
