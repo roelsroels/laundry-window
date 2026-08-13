@@ -9,12 +9,13 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /<title>Laundry Window/);
   assert.match(html, /href="styles\.css"/);
   assert.match(html, /src="i18n\.js"/);
+  assert.match(html, /src="machines\.js"/);
   assert.match(html, /src="market-prices\.js"/);
   assert.match(html, /src="app\.js"/);
   assert.match(html, /Samsung WF702Y4BKWQ\/EN/);
   assert.match(html, /Bosch WAE284A7NL\/12/);
   assert.match(html, /id="machine-profile"/);
-  assert.match(html, /Two model profiles/);
+  assert.match(html, /Ten model profiles/);
   assert.match(html, /src="https:\/\/cdnjs\.buymeacoffee\.com\/1\.0\.0\/button\.prod\.min\.js"/);
   assert.match(html, /data-slug="roels"/);
   assert.match(html, /data-text="Buy me a beer"/);
@@ -31,6 +32,7 @@ test("only site assets live in the public web root", async () => {
     access(new URL("html/index.html", root)),
     access(new URL("html/styles.css", root)),
     access(new URL("html/i18n.js", root)),
+    access(new URL("html/machines.js", root)),
     access(new URL("html/app.js", root)),
     access(new URL("html/market-prices.js", root)),
   ]);
@@ -92,6 +94,15 @@ test("the market helper chooses the cheapest complete valid schedule", async () 
   assert.equal(boschBest.start, boschPointsStart + 150 * 60000);
   assert.equal(market.findCheapestSchedule(boschPoints, new Date(boschPointsStart), 150, 0, { min: 1, max: 2 }).delayHours, 0);
 
+  const startDelay = market.scheduleForTimer(new Date(boschPointsStart), 75, 2, { mode: "start" });
+  assert.equal(startDelay.start, boschPointsStart + 2 * 3600000);
+  assert.equal(startDelay.end, boschPointsStart + (2 * 60 + 75) * 60000);
+  const endDelay = market.scheduleForTimer(new Date(boschPointsStart), 75, 2, { mode: "end" });
+  assert.equal(endDelay.start, boschPointsStart + 45 * 60000);
+  assert.equal(endDelay.end, boschPointsStart + 2 * 3600000);
+  assert.deepEqual(market.timerChoices({ min: 0.5, max: 2, step: 0.5 }), [0.5, 1, 1.5, 2]);
+  assert.deepEqual(market.timerChoices({ min: 0.5, max: 3, choices: [0.5, 1, 1.5, 2, 3] }, true), [0, 0.5, 1, 1.5, 2, 3]);
+
   const fullFitPlanning = new Date("2026-01-01T00:00:00Z");
   const fullFitStart = fullFitPlanning.getTime();
   const fullFitPoints = Array.from({ length: 96 }, (_, index) => {
@@ -120,8 +131,32 @@ test("repository screenshots are present", async () => {
   ]);
 });
 
-test("the Samsung and Bosch programme profiles remain present", async () => {
-  const script = await readFile(new URL("html/app.js", root), "utf8");
+test("ten isolated washing-machine profiles are present", async () => {
+  globalThis.window = globalThis;
+  await import(new URL("html/machines.js", root));
+  const machines = globalThis.LaundryMachines;
+  assert.equal(machines.length, 10);
+  assert.deepEqual(machines.map((machine) => machine.id), [
+    "samsung-wf-y4bk-b4bk",
+    "bosch-wae284a7nl-12",
+    "hisense-wf3s8043bw3-blx",
+    "aeg-lf628600",
+    "samsung-ww11dg5b25ab",
+    "haier-hw80-bp14929a-s",
+    "inventum-vwm8010w-vwm8030b",
+    "beko-bm3wft31041w",
+    "bosch-wan2827dnl",
+    "siemens-wg44j2a9nl"
+  ]);
+  assert.equal(machines.find((machine) => machine.id === "aeg-lf628600").timerRange.mode, "start");
+  assert.equal(machines.find((machine) => machine.id === "inventum-vwm8010w-vwm8030b").timerRange.mode, "start");
+  assert.equal(machines.find((machine) => machine.id === "haier-hw80-bp14929a-s").timerRange.step, 0.5);
+  assert.equal(machines.find((machine) => machine.id === "aeg-lf628600").programs.find((item) => item.id === "20-min-3kg").minutes, 20);
+  assert.equal(machines.find((machine) => machine.id === "hisense-wf3s8043bw3-blx").programs.find((item) => item.id === "power-wash-49").minutes, 49);
+  assert.equal(machines.find((machine) => machine.id === "samsung-ww11dg5b25ab").programs.find((item) => item.id === "super-speed-39").minutes, 39);
+  assert.equal(machines.find((machine) => machine.id === "beko-bm3wft31041w").programs.find((item) => item.id === "xpress-30").minutes, 28);
+
+  const script = await readFile(new URL("html/machines.js", root), "utf8");
   const expected = {
     cotton: 133,
     synthetics: 105,
@@ -135,9 +170,8 @@ test("the Samsung and Bosch programme profiles remain present", async () => {
     hand: 30,
     wool: 38,
   };
-  for (const [id, minutes] of Object.entries(expected)) {
-    assert.match(script, new RegExp(`id: "${id}"[^\\n]+minutes: ${minutes}`));
-  }
+  const originalSamsung = machines.find((machine) => machine.id === "samsung-wf-y4bk-b4bk");
+  for (const [id, minutes] of Object.entries(expected)) assert.equal(originalSamsung.programs.find((item) => item.id === id).minutes, minutes);
   const boschExpected = {
     "cotton-20": 150,
     "cotton-30": 150,
@@ -150,24 +184,25 @@ test("the Samsung and Bosch programme profiles remain present", async () => {
     "wool-30": 45,
     "super-quick-15": 15,
   };
-  for (const [id, minutes] of Object.entries(boschExpected)) {
-    assert.match(script, new RegExp(`id: "${id}"[^\\n]+minutes: ${minutes}`));
-  }
-  assert.match(script, /timerRange: \{ min: 3, max: 19 \}/);
-  assert.match(script, /timerRange: \{ min: 1, max: 24 \}/);
+  const originalBosch = machines.find((machine) => machine.id === "bosch-wae284a7nl-12");
+  for (const [id, minutes] of Object.entries(boschExpected)) assert.equal(originalBosch.programs.find((item) => item.id === id).minutes, minutes);
+  assert.match(script, /timerRange: \{ min: 3, max: 19, step: 1, mode: "end" \}/);
+  assert.match(script, /timerRange: \{ min: 0\.5, max: 20, mode: "start"/);
   assert.match(script, /defaultProgram: "dark"/);
   assert.match(script, /defaultProgram: "cotton-40"/);
-  assert.match(script, /washer-machine-profile/);
-  assert.match(script, /washer-preferred-programs/);
-  assert.match(script, /washer-program-overrides-v2/);
-  assert.match(script, /shouldReoptimise/);
-  assert.match(script, /safetyTitle/);
-  assert.match(script, /marketPrices\.timelineCoverage/);
-  assert.match(script, /marketPrices\.latestSafeStart/);
-  assert.match(script, /delayHours === 0/);
-  assert.match(script, /instructionNow/);
-  assert.match(script, /--outside-before/);
-  assert.match(script, /--inside-until/);
+  const app = await readFile(new URL("html/app.js", root), "utf8");
+  assert.match(app, /washer-machine-profile/);
+  assert.match(app, /washer-preferred-programs/);
+  assert.match(app, /washer-program-overrides-v2/);
+  assert.match(app, /shouldReoptimise/);
+  assert.match(app, /safetyTitle/);
+  assert.match(app, /marketPrices\.timelineCoverage/);
+  assert.match(app, /marketPrices\.latestSafeStart/);
+  assert.match(app, /marketPrices\.scheduleForTimer/);
+  assert.match(app, /delayHours === 0/);
+  assert.match(app, /instructionNow/);
+  assert.match(app, /--outside-before/);
+  assert.match(app, /--inside-until/);
 });
 
 test("the interface supports remembered English and Dutch translations", async () => {
@@ -175,15 +210,14 @@ test("the interface supports remembered English and Dutch translations", async (
   assert.match(script, /laundry-language/);
   assert.match(script, /Set the time/);
   assert.match(script, /Stel de tijd in/);
-  assert.match(script, /Bosch WAE284A7NL\/12/);
-  assert.match(script, /Klaar in/);
-  assert.match(script, /Ready in/);
   assert.match(script, /marketWindow/);
   assert.match(script, /exact 15-minute market intervals/);
   assert.match(script, /exacte marktkwartieren/);
   assert.match(script, /raw wholesale market price/);
   assert.match(script, /kale beursprijs/);
   assert.match(script, /normally published around 15:00/);
+  assert.match(script, /Ten model profiles/);
+  assert.match(script, /Tien modelprofielen/);
 });
 
 test("the nginx example includes safe static defaults", async () => {

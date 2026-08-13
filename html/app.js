@@ -1,60 +1,7 @@
 (() => {
   "use strict";
 
-  const MACHINES = [
-    {
-      id: "samsung-wf-y4bk-b4bk",
-      brand: "Samsung",
-      model: "WF702Y4BKWQ/EN",
-      optionKey: "samsungMachineOption",
-      timerKey: "samsungTimerName",
-      timerRange: { min: 3, max: 19 },
-      prewashMinutes: 18,
-      defaultProgram: "dark",
-      groups: ["dialGroup", "quickGroup"],
-      manualKey: "samsungManualPage",
-      referenceKey: "samsungReferenceText",
-      programs: [
-        { id: "cotton", nameKey: "cotton", minutes: 133, group: "dialGroup" },
-        { id: "synthetics", nameKey: "synthetics", minutes: 105, group: "dialGroup" },
-        { id: "jeans", nameKey: "jeans", minutes: 77, group: "dialGroup" },
-        { id: "bedding", nameKey: "bedding", minutes: 100, group: "dialGroup" },
-        { id: "dark", nameKey: "dark", minutes: 78, group: "dialGroup" },
-        { id: "daily", nameKey: "daily", minutes: 66, group: "dialGroup" },
-        { id: "drum", nameKey: "drum", minutes: 104, group: "dialGroup" },
-        { id: "baby", nameKey: "baby", minutes: 142, group: "dialGroup" },
-        { id: "sports", nameKey: "sports", minutes: 72, group: "dialGroup" },
-        { id: "hand", nameKey: "hand", minutes: 30, group: "dialGroup" },
-        { id: "wool", nameKey: "wool", minutes: 38, group: "dialGroup" },
-        ...[15, 20, 30, 40, 50, 60].map((minutes) => ({ id: `quick-${minutes}`, nameKey: "quick", minutes, group: "quickGroup" }))
-      ]
-    },
-    {
-      id: "bosch-wae284a7nl-12",
-      brand: "Bosch",
-      model: "WAE284A7NL/12",
-      optionKey: "boschMachineOption",
-      timerKey: "boschTimerName",
-      timerRange: { min: 1, max: 24 },
-      prewashMinutes: 0,
-      defaultProgram: "cotton-40",
-      groups: ["boschCottonGroup", "boschOtherGroup"],
-      manualKey: "boschManualPage",
-      referenceKey: "boschReferenceText",
-      programs: [
-        { id: "cotton-20", nameKey: "boschCotton20", minutes: 150, group: "boschCottonGroup" },
-        { id: "cotton-30", nameKey: "boschCotton30", minutes: 150, group: "boschCottonGroup" },
-        { id: "cotton-40", nameKey: "boschCotton40", minutes: 150, group: "boschCottonGroup" },
-        { id: "cotton-60", nameKey: "boschCotton60", minutes: 165, group: "boschCottonGroup" },
-        { id: "cotton-90", nameKey: "boschCotton90", minutes: 165, group: "boschCottonGroup" },
-        { id: "easy-care-40", nameKey: "boschEasyCare40", minutes: 105, group: "boschOtherGroup" },
-        { id: "quick-mix-40", nameKey: "boschQuickMix40", minutes: 75, group: "boschOtherGroup" },
-        { id: "delicates-30", nameKey: "boschDelicates30", minutes: 45, group: "boschOtherGroup" },
-        { id: "wool-30", nameKey: "boschWool30", minutes: 45, group: "boschOtherGroup" },
-        { id: "super-quick-15", nameKey: "boschSuperQuick15", minutes: 15, group: "boschOtherGroup" }
-      ]
-    }
-  ];
+  const MACHINES = window.LaundryMachines;
 
   const minute = 60000;
   const hour = 60 * minute;
@@ -67,6 +14,7 @@
   const marketPrices = window.LaundryMarketPrices;
   const i18n = window.LaundryI18n;
   const t = (key, values) => i18n.t(key, values);
+  const localised = (value) => typeof value === "string" ? value : value?.[i18n.language] || value?.en || "";
   let machineId = MACHINES[0].id;
   let overrides = {};
   let preferredPrograms = {};
@@ -149,7 +97,7 @@
   }
 
   function programName(item) {
-    return t(item.nameKey, { minutes: item.minutes });
+    return localised(item.label);
   }
 
   function currentProgram() {
@@ -164,9 +112,14 @@
   }
 
   function delayChoices(includeNow = true) {
-    const { min, max } = currentMachine().timerRange;
-    const choices = Array.from({ length: max - min + 1 }, (_, index) => index + min);
-    return includeNow ? [0, ...choices] : choices;
+    return marketPrices.timerChoices(currentMachine().timerRange, includeNow);
+  }
+
+  function timerValueText(hours) {
+    const whole = Math.floor(hours);
+    const minutes = Math.round((hours - whole) * 60);
+    if (!minutes) return String(whole);
+    return `${whole}:${String(minutes).padStart(2, "0")}`;
   }
 
   function fillMachines() {
@@ -174,7 +127,7 @@
     MACHINES.forEach((machine) => {
       const option = document.createElement("option");
       option.value = machine.id;
-      option.textContent = t(machine.optionKey);
+      option.textContent = localised(machine.option);
       machineSelect.append(option);
     });
     machineSelect.value = machineId;
@@ -184,10 +137,10 @@
     const machine = currentMachine();
     const selectedValue = programme.value || preferredProgramId();
     programme.replaceChildren();
-    machine.groups.forEach((groupName) => {
+    machine.groups.forEach((groupData) => {
       const group = document.createElement("optgroup");
-      group.label = t(groupName);
-      machine.programs.filter((item) => item.group === groupName).forEach((item) => {
+      group.label = localised(groupData.label);
+      machine.programs.filter((item) => item.group === groupData.id).forEach((item) => {
         const option = document.createElement("option");
         option.value = item.id;
         option.textContent = `${programName(item)} · ${durationText(item.minutes)}`;
@@ -211,13 +164,17 @@
 
   function updateMachineCopy() {
     const machine = currentMachine();
+    const timerName = localised(machine.timer);
+    const timerMode = machine.timerRange.mode || "end";
     $("#model-chip").textContent = `${machine.brand} ${machine.model}`;
-    $("#hero-timer-label").textContent = t(machine.timerKey).toUpperCase();
-    $(".dial-label-top").textContent = `${machine.timerRange.min}h`;
-    $(".dial-label-right").textContent = `${machine.timerRange.max}h`;
-    $("#why-range").innerHTML = t("why1", { timer: t(machine.timerKey), min: machine.timerRange.min, max: machine.timerRange.max });
-    $("#manual-page").textContent = t(machine.manualKey);
-    $("#reference-text").innerHTML = t(machine.referenceKey);
+    $("#hero-timer-label").textContent = timerName.toUpperCase();
+    $(".dial-label-top").textContent = `${timerValueText(machine.timerRange.min)}h`;
+    $(".dial-label-right").textContent = `${timerValueText(machine.timerRange.max)}h`;
+    $("#why-title").innerHTML = t(timerMode === "start" ? "whyTitleStart" : "whyTitleEnd");
+    $("#why-range").innerHTML = t("why1", { timer: timerName, min: timerValueText(machine.timerRange.min), max: timerValueText(machine.timerRange.max), increments: localised(machine.timerIncrements) });
+    $("#why-semantics").innerHTML = t(timerMode === "start" ? "why2Start" : "why2End");
+    $("#manual-page").textContent = localised(machine.manual);
+    $("#reference-text").innerHTML = localised(machine.reference);
     $("#prewash-row").hidden = !machine.prewashMinutes;
     if (!machine.prewashMinutes) $("#prewash").checked = false;
   }
@@ -326,7 +283,7 @@
 
       if (!best || !cheapWindow) {
         const unavailable = dayOffset === 1 && !marketPrices.hasPricesForDay(points, planning, dayOffset);
-        setMarketStatus(t(unavailable ? "tomorrowUnavailable" : "noDayFit", { day: t(dayOffset ? "tomorrow" : "today"), min: timerRange.min, max: timerRange.max, timer: t(currentMachine().timerKey) }), "error");
+        setMarketStatus(t(unavailable ? "tomorrowUnavailable" : "noDayFit", { day: t(dayOffset ? "tomorrow" : "today"), min: timerValueText(timerRange.min), max: timerValueText(timerRange.max), timer: localised(currentMachine().timer) }), "error");
         return;
       }
 
@@ -363,10 +320,10 @@
     if (windowEnd <= windowStart) return renderError(t("invalidWindow"));
 
     const schedules = delayChoices().map((delayHours) => {
-      const end = new Date(planning.getTime() + delayHours * hour);
-      const start = delayHours === 0 ? planning : new Date(end.getTime() - plannedMinutes * minute);
-      const actualEnd = delayHours === 0 ? new Date(planning.getTime() + plannedMinutes * minute) : end;
-      return { delayHours, start, end: actualEnd, overlapMinutes: overlap(start, actualEnd, windowStart, windowEnd) };
+      const raw = marketPrices.scheduleForTimer(planning, plannedMinutes, delayHours, machine.timerRange);
+      const start = new Date(raw.start);
+      const end = new Date(raw.end);
+      return { delayHours, start, end, overlapMinutes: overlap(start, end, windowStart, windowEnd) };
     }).filter((schedule) => schedule.delayHours === 0 || schedule.start >= planning);
 
     const protectedStart = new Date(windowStart.getTime() + margin * minute);
@@ -384,7 +341,7 @@
 
     schedules.sort((a, b) => b.overlapMinutes - a.overlapMinutes);
     const closestSchedule = marketSchedule || schedules[0];
-    let message = t("noWholeFit", { timer: t(machine.timerKey) });
+    let message = t("noTimerFit", { timer: localised(machine.timer) });
     let warningTitle = "";
     const windowMinutes = (windowEnd - windowStart) / minute;
     const percent = Math.round(closestSchedule.overlapMinutes / plannedMinutes * 100);
@@ -396,8 +353,11 @@
       message = t("safetyMessage", { used: shortfall, margin });
       warningTitle = t("safetyTitle", { shortfall });
     } else if (plannedMinutes + margin * 2 > windowMinutes) message = t("tooLong");
-    else if (windowEnd.getTime() < planning.getTime() + machine.timerRange.min * hour) message = t("tooEarly", { min: machine.timerRange.min });
-    else if (windowStart.getTime() > planning.getTime() + machine.timerRange.max * hour) message = t("tooLate", { max: machine.timerRange.max });
+    else {
+      const delayed = schedules.filter((item) => item.delayHours > 0);
+      if (delayed.length && windowEnd.getTime() < Math.min(...delayed.map((item) => item.start.getTime()))) message = t("tooEarly", { min: timerValueText(machine.timerRange.min) });
+      else if (delayed.length && windowStart.getTime() > Math.max(...delayed.map((item) => item.end.getTime()))) message = t("tooLate", { max: timerValueText(machine.timerRange.max) });
+    }
     renderSchedule(closestSchedule, selected, plannedMinutes, windowStart, windowEnd, false, message, percent, warningTitle);
   }
 
@@ -408,7 +368,7 @@
   }
 
   function renderSchedule(schedule, selected, plannedMinutes, windowStart, windowEnd, exact, message = "", percent = 0, warningTitle = "") {
-    const timerName = t(currentMachine().timerKey);
+    const timerName = localised(currentMachine().timer);
     $("#result").classList.toggle("result-warning", !exact);
     $("#result-content").innerHTML = `
       <div class="delay-readout${schedule.delayHours === 0 ? " immediate-readout" : ""}"><strong id="delay-number"></strong><span id="delay-unit">h</span></div>
@@ -418,10 +378,10 @@
       <div class="timeline" aria-label="${t("expectedTiming")}"><div class="timeline-track" id="timeline-track"><span></span></div><div class="timeline-labels"><span><small>${t("washStarts")}</small><strong id="wash-start"></strong></span><span><small>${t("washEnds")}</small><strong id="wash-end"></strong></span></div></div>
       <dl class="summary-list"><div><dt>${t("programLabel")}</dt><dd id="summary-programme"></dd></div><div><dt>${t("plannedDuration")}</dt><dd id="summary-duration"></dd></div><div><dt>${t(suggestionActive ? "marketBandSummary" : "windowSummary")}</dt><dd id="summary-window"></dd></div></dl>
       <button class="refresh-button" id="refresh-result" type="button">${t("refresh")}</button>`;
-    $("#delay-number").textContent = schedule.delayHours === 0 ? t("nowReadout") : schedule.delayHours;
+    $("#delay-number").textContent = schedule.delayHours === 0 ? t("nowReadout") : timerValueText(schedule.delayHours);
     $("#delay-unit").hidden = schedule.delayHours === 0;
     const delayInline = $("#delay-inline");
-    if (delayInline) delayInline.textContent = `${schedule.delayHours}h`;
+    if (delayInline) delayInline.textContent = `${timerValueText(schedule.delayHours)}h`;
     $("#wash-start").textContent = momentText(schedule.start);
     $("#wash-end").textContent = momentText(schedule.end);
     $("#summary-programme").textContent = programName(selected);

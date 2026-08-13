@@ -71,6 +71,34 @@
     return intervals.some((interval) => interval.start < bounds.end && interval.end > bounds.start);
   }
 
+  function timerChoices(timerRange, includeNow = false) {
+    const min = Number(timerRange?.min);
+    const max = Number(timerRange?.max);
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max < min) return [];
+
+    let choices;
+    if (Array.isArray(timerRange?.choices)) {
+      choices = timerRange.choices.map(Number).filter((value) => Number.isFinite(value) && value >= min && value <= max);
+    } else {
+      const step = Number(timerRange?.step || 1);
+      if (!Number.isFinite(step) || step <= 0) return [];
+      choices = [];
+      for (let value = min; value <= max + 1e-9; value += step) choices.push(Number(value.toFixed(4)));
+    }
+    const unique = [...new Set(choices)].sort((a, b) => a - b);
+    return includeNow ? [0, ...unique] : unique;
+  }
+
+  function scheduleForTimer(planningDate, cycleMinutes, delayHours, timerRange = { mode: "end" }) {
+    const planning = new Date(planningDate).getTime();
+    const duration = Number(cycleMinutes) * minute;
+    const delay = Number(delayHours) * hour;
+    if (![planning, duration, delay].every(Number.isFinite) || duration <= 0 || delay < 0) return null;
+    if (delayHours === 0) return { start: planning, end: planning + duration };
+    if (timerRange?.mode === "start") return { start: planning + delay, end: planning + delay + duration };
+    return { start: planning + delay - duration, end: planning + delay };
+  }
+
   function findLowPriceWindow(rawPoints, planningDate, dayOffset) {
     const bounds = localDayBounds(planningDate, dayOffset);
     const intervals = normalisePricePoints(rawPoints)
@@ -103,16 +131,11 @@
 
     const intervals = normalisePricePoints(rawPoints);
     const bounds = dayOffset === null ? null : localDayBounds(planningDate, dayOffset);
-    const minDelay = Number(timerRange?.min);
-    const maxDelay = Number(timerRange?.max);
-    if (!Number.isInteger(minDelay) || !Number.isInteger(maxDelay) || minDelay < 1 || maxDelay < minDelay) return null;
-    const wholeHourChoices = Array.from({ length: maxDelay - minDelay + 1 }, (_, index) => index + minDelay);
-    const delayChoices = dayOffset === 0 ? [0, ...wholeHourChoices] : wholeHourChoices;
+    const delayChoices = timerChoices(timerRange, dayOffset === 0);
+    if (!delayChoices.length) return null;
     const candidates = delayChoices.map((delayHours) => {
-      const end = planning + delayHours * hour;
-      const start = delayHours === 0 ? planning : end - cycleMinutes * minute;
-      const actualEnd = delayHours === 0 ? planning + cycleMinutes * minute : end;
-      return { delayHours, start, end: actualEnd, average: averagePrice(start, actualEnd, intervals) };
+      const schedule = scheduleForTimer(planningDate, cycleMinutes, delayHours, timerRange);
+      return { delayHours, ...schedule, average: averagePrice(schedule.start, schedule.end, intervals) };
     }).filter((candidate) => candidate.average !== null && (candidate.delayHours === 0 || candidate.start >= planning) && (!bounds || (candidate.start >= bounds.start && candidate.end <= bounds.end)));
 
     if (!candidates.length) return null;
@@ -155,5 +178,5 @@
   }
 
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, latestSafeStart, normalisePricePoints, priceUrl, timelineCoverage };
+  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices };
 })();
