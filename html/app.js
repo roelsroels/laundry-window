@@ -315,12 +315,7 @@
       }
       const currentBest = cheapWindow ? marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange, preferredWindow) : null;
       const waitBest = cheapWindow ? marketPrices.findCheapestWaitSchedule(points, planning, cycleMinutes(), timerRange, preferredWindow) : null;
-      const protectedStart = preferredWindow ? preferredWindow.start + preferredWindow.marginMinutes * minute : 0;
-      const protectedEnd = preferredWindow ? preferredWindow.end - preferredWindow.marginMinutes * minute : 0;
-      const currentComplete = currentBest && currentBest.start >= protectedStart && currentBest.end <= protectedEnd;
-      const best = waitBest && (!currentComplete || waitBest.average < currentBest.average - 1e-9)
-        ? waitBest
-        : currentBest && { ...currentBest, activationTime: planning.getTime() };
+      const best = marketPrices.choosePracticalSchedule(currentBest, waitBest, planning, preferredWindow);
 
       if (!best || !cheapWindow) {
         const unavailable = dayOffset === 1 && !marketPrices.hasPricesForDay(points, planning, dayOffset);
@@ -434,6 +429,10 @@
     const planning = new Date($("#planning-time").value);
     const activationTime = schedule.activationTime ? new Date(schedule.activationTime) : planning;
     const requiresWait = activationTime > planning;
+    const protectedStart = new Date(windowStart.getTime() + Number($("#safety-margin").value) * minute);
+    const alignmentMinutes = suggestionActive && exact && !requiresWait && schedule.delayHours > 0
+      ? Math.max(0, Math.round((schedule.start - protectedStart) / minute))
+      : 0;
     $(".result-kicker").textContent = t("selectMachine");
     $("#result").classList.toggle("result-warning", !exact);
     $("#result-content").innerHTML = `
@@ -441,6 +440,7 @@
       <h2>${schedule.delayHours === 0 ? t("startNowHeading") : timerName}</h2>
       <p class="instruction">${t(schedule.delayHours === 0 ? "instructionNow" : requiresWait ? "instructionWait" : "instruction", { timer: timerName, time: timeText(activationTime) })}</p>
       <div class="wait-box" id="wait-box"${requiresWait ? "" : " hidden"}><strong>${t("waitTitle", { time: timeText(activationTime) })}</strong><span id="wait-message"></span></div>
+      <div class="alignment-box" id="alignment-box"${alignmentMinutes ? "" : " hidden"}><strong>${t("alignmentTitle")}</strong><span>${t("alignmentMessage", { minutes: alignmentMinutes, timer: timerName })}</span></div>
       <div class="warning-box" id="warning-box"${exact ? " hidden" : ""}><strong id="warning-title"></strong><span id="warning-message"></span></div>
       <div class="timeline" aria-label="${t("expectedTiming")}"><div class="timeline-track" id="timeline-track"><span></span></div><div class="timeline-labels"><span><small>${t("washStarts")}</small><strong id="wash-start"></strong></span><span><small>${t("washEnds")}</small><strong id="wash-end"></strong></span></div></div>
       <dl class="summary-list">${requiresWait ? `<div><dt>${t("setMachineAt")}</dt><dd id="summary-setting"></dd></div>` : ""}<div><dt>${t("programLabel")}</dt><dd id="summary-programme"></dd></div><div><dt>${t("plannedDuration")}</dt><dd id="summary-duration"></dd></div><div><dt>${t(suggestionActive ? "marketBandSummary" : "windowSummary")}</dt><dd id="summary-window"></dd></div></dl>

@@ -146,6 +146,18 @@ test("the market helper chooses the cheapest complete valid schedule", async () 
   assert.equal(reportedMarketWait.start, new Date(2026, 7, 14, 12, 45).getTime());
   assert.equal(reportedMarketWait.end, new Date(2026, 7, 14, 14, 0).getTime());
 
+  const cheaperWait = { delayHours: 16, activationTime: new Date(2026, 7, 13, 22, 45).getTime(), start: new Date(2026, 7, 14, 13, 27).getTime(), end: new Date(2026, 7, 14, 14, 45).getTime(), average: 18.5 };
+  const currentCompleteEndTimer = { delayHours: 16, start: new Date(2026, 7, 14, 12, 53).getTime(), end: new Date(2026, 7, 14, 14, 11).getTime(), average: 18.7 };
+  const practicalEndTimer = market.choosePracticalSchedule(currentCompleteEndTimer, cheaperWait, new Date(2026, 7, 13, 22, 11), reportedMarketWindow);
+  assert.equal(practicalEndTimer.start, currentCompleteEndTimer.start, "a complete setting available now beats waiting for a marginally cheaper end-timer schedule");
+  assert.equal(practicalEndTimer.activationTime, new Date(2026, 7, 13, 22, 11).getTime());
+
+  const currentPartialStartTimer = { delayHours: 2, start: new Date(2026, 7, 14, 12, 15).getTime(), end: new Date(2026, 7, 14, 13, 15).getTime(), average: 12 };
+  const completeWaitStartTimer = { delayHours: 2, activationTime: new Date(2026, 7, 14, 10, 45).getTime(), start: new Date(2026, 7, 14, 12, 45).getTime(), end: new Date(2026, 7, 14, 13, 45).getTime(), average: 15 };
+  assert.equal(market.choosePracticalSchedule(currentPartialStartTimer, completeWaitStartTimer, new Date(2026, 7, 14, 10, 15), reportedMarketWindow).activationTime, completeWaitStartTimer.activationTime, "waiting remains valid when no current start-delay setting fits completely");
+  const currentCompleteStartTimer = { delayHours: 3, start: new Date(2026, 7, 14, 13, 15).getTime(), end: new Date(2026, 7, 14, 14, 15).getTime(), average: 16 };
+  assert.equal(market.choosePracticalSchedule(currentCompleteStartTimer, completeWaitStartTimer, new Date(2026, 7, 14, 10, 15), reportedMarketWindow).start, currentCompleteStartTimer.start, "a complete start-delay setting available now also beats waiting");
+
   const startTimerWait = market.findWaitSchedule(
     new Date(2026, 7, 13, 10, 10),
     30,
@@ -238,6 +250,7 @@ test("ten isolated washing-machine profiles are present", async () => {
   assert.match(app, /marketPrices\.scheduleForTimer/);
   assert.match(app, /marketPrices\.findWaitSchedule/);
   assert.match(app, /marketPrices\.findCheapestWaitSchedule/);
+  assert.match(app, /marketPrices\.choosePracticalSchedule/);
   assert.match(app, /marketPrices\.isPastTodayWindow/);
   assert.match(app, /delayHours === 0/);
   assert.match(app, /instructionNow/);
@@ -258,6 +271,8 @@ test("the interface supports remembered English and Dutch translations", async (
   assert.match(script, /normally published around 15:00/);
   assert.match(script, /No cheap window left today/);
   assert.match(script, /Geen goedkoop venster meer vandaag/);
+  assert.match(script, /Set it now · complete fit/);
+  assert.match(script, /Stel nu in · past volledig/);
   assert.match(script, /Wait until \{time\} for a complete fit/);
   assert.match(script, /Wacht tot \{time\}, zodat de was volledig past/);
   assert.match(script, /Ten model profiles/);
