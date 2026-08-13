@@ -71,6 +71,12 @@
     return intervals.some((interval) => interval.start < bounds.end && interval.end > bounds.start);
   }
 
+  function isPastTodayWindow(preferredWindow, planningDate, dayOffset = 0) {
+    const planning = new Date(planningDate).getTime();
+    const end = Number(preferredWindow?.end);
+    return Number(dayOffset) === 0 && Number.isFinite(planning) && Number.isFinite(end) && end <= planning;
+  }
+
   function timerChoices(timerRange, includeNow = false) {
     const min = Number(timerRange?.min);
     const max = Number(timerRange?.max);
@@ -230,5 +236,5 @@
   }
 
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findCheapestWaitSchedule, findLowPriceWindow, findWaitSchedule, hasPricesForDay, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices };
+  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findCheapestWaitSchedule, findLowPriceWindow, findWaitSchedule, hasPricesForDay, isPastTodayWindow, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices };
 })();

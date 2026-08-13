@@ -20,6 +20,7 @@
   let preferredPrograms = {};
   let suggestionActive = false;
   let lastMarketResult = null;
+  let lastExpiredMarketWindow = null;
   let lastSuggestionDayOffset = null;
 
   try {
@@ -218,6 +219,7 @@
     if (!suggestionActive) return;
     suggestionActive = false;
     lastMarketResult = null;
+    lastExpiredMarketWindow = null;
     lastSuggestionDayOffset = null;
     updateWindowContext();
     setMarketStatus(t("settingsChanged"));
@@ -252,6 +254,23 @@
     setMarketStatus(t("marketSuccess", { day: t(dayOffset ? "tomorrow" : "today"), program: programName(currentProgram()), start: momentText(new Date(best.start)), end: momentText(new Date(best.end)), lowStart: momentText(new Date(cheapWindow.start)), lowEnd: momentText(new Date(cheapWindow.end)), percent, price: marketPriceText(best.average), available: momentText(availableUntil), deadline, setup }), "success");
   }
 
+  function renderExpiredMarketWindow() {
+    if (!lastExpiredMarketWindow) return;
+    const { start, end } = lastExpiredMarketWindow;
+    const message = t("todayWindowPassed", { start: momentText(new Date(start)), end: momentText(new Date(end)) });
+    setMarketStatus(message, "error");
+    $(".result-kicker").textContent = t("noTimerSelection");
+    $("#result").classList.remove("result-warning");
+    $("#result-content").innerHTML = `
+      <div class="empty-result">
+        <div class="empty-dial" aria-hidden="true">—</div>
+        <h2>${t("todayWindowPassedHeading")}</h2>
+        <p>${message}</p>
+        <button class="refresh-button" id="suggest-tomorrow-result" type="button">${t("suggestTomorrow")}</button>
+      </div>`;
+    $("#suggest-tomorrow-result").addEventListener("click", () => suggestMarketWindow(1));
+  }
+
   function updateMarketButtons(activeButton = null) {
     marketButtons.forEach((button) => {
       button.textContent = button === activeButton ? t("checking") : t(Number(button.dataset.suggestDay) ? "suggestTomorrow" : "suggestToday");
@@ -283,6 +302,17 @@
         end: cheapWindow.end,
         marginMinutes: Number($("#safety-margin").value)
       } : null;
+      if (cheapWindow && marketPrices.isPastTodayWindow(cheapWindow, planning, dayOffset)) {
+        $("#cheap-start").value = inputValue(new Date(cheapWindow.start));
+        $("#cheap-end").value = inputValue(new Date(cheapWindow.end));
+        suggestionActive = true;
+        lastSuggestionDayOffset = dayOffset;
+        lastMarketResult = null;
+        lastExpiredMarketWindow = cheapWindow;
+        updateWindowContext();
+        renderExpiredMarketWindow();
+        return;
+      }
       const currentBest = cheapWindow ? marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange, preferredWindow) : null;
       const waitBest = cheapWindow ? marketPrices.findCheapestWaitSchedule(points, planning, cycleMinutes(), timerRange, preferredWindow) : null;
       const protectedStart = preferredWindow ? preferredWindow.start + preferredWindow.marginMinutes * minute : 0;
@@ -302,6 +332,7 @@
       $("#cheap-end").value = inputValue(new Date(cheapWindow.end));
       suggestionActive = true;
       lastSuggestionDayOffset = dayOffset;
+      lastExpiredMarketWindow = null;
       lastMarketResult = { best, cheapWindow, dayOffset, availableUntil: new Date(intervals[intervals.length - 1].end) };
       updateWindowContext();
       calculate();
@@ -403,6 +434,7 @@
     const planning = new Date($("#planning-time").value);
     const activationTime = schedule.activationTime ? new Date(schedule.activationTime) : planning;
     const requiresWait = activationTime > planning;
+    $(".result-kicker").textContent = t("selectMachine");
     $("#result").classList.toggle("result-warning", !exact);
     $("#result-content").innerHTML = `
       <div class="delay-readout${schedule.delayHours === 0 ? " immediate-readout" : ""}"><strong id="delay-number"></strong><span id="delay-unit">h</span></div>
@@ -484,8 +516,11 @@
     updateSafetyOptions();
     updateWindowContext();
     updateMarketButtons();
-    if (suggestionActive) renderMarketSuccess(); else setMarketStatus(t("marketDefault"));
-    calculate();
+    if (lastExpiredMarketWindow) renderExpiredMarketWindow();
+    else {
+      if (suggestionActive) renderMarketSuccess(); else setMarketStatus(t("marketDefault"));
+      calculate();
+    }
   });
 
   $("#advanced-toggle").addEventListener("click", () => {
