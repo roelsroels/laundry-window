@@ -22,6 +22,8 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /EnergyZero/);
   assert.match(html, /data-suggest-day="0"/);
   assert.match(html, /data-suggest-day="1"/);
+  assert.match(html, /<option value="0" data-i18n="noMargin" selected>/);
+  assert.doesNotMatch(html, /<option value="15"[^>]*selected/);
   assert.match(html, /https:\/\/github\.com\/roelsroels\/laundry-window/);
   assert.match(html, /🇬🇧/);
   assert.doesNotMatch(html, /🇺🇸/);
@@ -118,6 +120,38 @@ test("the market helper chooses the cheapest complete valid schedule", async () 
   assert.equal(fullFitCheapest.start, fullFitStart + 12.75 * 3600000);
   assert.equal(fullFitCheapest.end, fullFitStart + 14 * 3600000);
 
+  const reportedPlanning = new Date(2026, 7, 13, 20, 58);
+  const reportedWindow = {
+    start: new Date(2026, 7, 14, 13, 0).getTime(),
+    end: new Date(2026, 7, 14, 14, 45).getTime(),
+    marginMinutes: 0
+  };
+  const reportedWait = market.findWaitSchedule(reportedPlanning, 75, { min: 1, max: 24, step: 1, mode: "end" }, reportedWindow);
+  assert.equal(reportedWait.delayHours, 17);
+  assert.equal(reportedWait.activationTime, new Date(2026, 7, 13, 21, 15).getTime());
+  assert.equal(reportedWait.start, new Date(2026, 7, 14, 13, 0).getTime());
+  assert.equal(reportedWait.end, new Date(2026, 7, 14, 14, 15).getTime());
+
+  const reportedMarketWindow = {
+    start: new Date(2026, 7, 14, 12, 45).getTime(),
+    end: new Date(2026, 7, 14, 14, 45).getTime(),
+    marginMinutes: 0
+  };
+  const reportedMarketWait = market.findWaitSchedule(reportedPlanning, 75, { min: 1, max: 24, step: 1, mode: "end" }, reportedMarketWindow);
+  assert.equal(reportedMarketWait.delayHours, 17);
+  assert.equal(reportedMarketWait.activationTime, new Date(2026, 7, 13, 21, 0).getTime());
+  assert.equal(reportedMarketWait.start, new Date(2026, 7, 14, 12, 45).getTime());
+  assert.equal(reportedMarketWait.end, new Date(2026, 7, 14, 14, 0).getTime());
+
+  const startTimerWait = market.findWaitSchedule(
+    new Date(2026, 7, 13, 10, 10),
+    30,
+    { min: 2, max: 2, step: 1, mode: "start" },
+    { start: new Date(2026, 7, 13, 12, 30).getTime(), end: new Date(2026, 7, 13, 13, 30).getTime(), marginMinutes: 0 }
+  );
+  assert.equal(startTimerWait.activationTime, new Date(2026, 7, 13, 10, 30).getTime());
+  assert.equal(startTimerWait.start, new Date(2026, 7, 13, 12, 30).getTime());
+
   const schedule = { start, end: start + 60 * 60000 };
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end, 60), { beforePercent: 0, afterPercent: 0 });
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end - 15 * 60000, 60), { beforePercent: 0, afterPercent: 25 });
@@ -199,6 +233,8 @@ test("ten isolated washing-machine profiles are present", async () => {
   assert.match(app, /marketPrices\.timelineCoverage/);
   assert.match(app, /marketPrices\.latestSafeStart/);
   assert.match(app, /marketPrices\.scheduleForTimer/);
+  assert.match(app, /marketPrices\.findWaitSchedule/);
+  assert.match(app, /marketPrices\.findCheapestWaitSchedule/);
   assert.match(app, /delayHours === 0/);
   assert.match(app, /instructionNow/);
   assert.match(app, /--outside-before/);
@@ -216,6 +252,8 @@ test("the interface supports remembered English and Dutch translations", async (
   assert.match(script, /raw wholesale market price/);
   assert.match(script, /kale beursprijs/);
   assert.match(script, /normally published around 15:00/);
+  assert.match(script, /Wait until \{time\} for a complete fit/);
+  assert.match(script, /Wacht tot \{time\}, zodat de was volledig past/);
   assert.match(script, /Ten model profiles/);
   assert.match(script, /Tien modelprofielen/);
 });

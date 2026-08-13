@@ -37,7 +37,7 @@ No compatibility is claimed for other Samsung ranges. Future support should add 
 
 The manual says the listed durations were measured under IEC 60456 / EN 60456 conditions. Samsung warns that actual values can differ due to water pressure and temperature, load, and fabric type. The Intensive option extends every cycle, but the manual does not specify a fixed duration.
 
-Laundry Window therefore centres a cycle within the selected cheap-energy window when possible and applies a 15-minute margin by default. Users can store a measured duration for each programme in their own browser. Those overrides never leave the device.
+Laundry Window therefore centres a cycle within the selected cheap-energy window when possible. The safety margin defaults to 0 minutes, with optional 10-, 15-, and 30-minute margins available under Fine-tune. Users can store a measured duration for each programme in their own browser. Those overrides never leave the device.
 
 ## Bosch WAE284A7NL/12 · Maxx 7 VarioPerfect
 
@@ -60,7 +60,7 @@ Bosch's current service archive exposes the exact model's installation document 
 
 The Bosch manual also states that programme duration can change during the wash because the programme sequence is optimised for the load, imbalance, or foam. It does not publish one fixed duration for every other dial programme (for example Allergy+, Shirts, Sports, Duvet, Rinse/Spin, and Drain). Laundry Window deliberately omits invented durations for those choices. A user can select the closest documented setting and store the duration shown by their own machine, or a future profile update can add further measured values.
 
-The Bosch timer calculation excludes any whole-hour finish time that would imply the cycle had to start before the time at which the machine is being set. This matters for long programmes: a 150-minute Cotton cycle cannot validly use a 1h or 2h Klaar in value even though the control's overall range begins at 1h.
+The Bosch timer calculation excludes any whole-hour finish time that would imply the cycle had to start before the time at which the machine is being set. This matters for long programmes: a 150-minute Cotton cycle cannot validly use a 1h or 2h Klaar in value even though the control's overall range begins at 1h. If no whole-hour value set at the current minute gives a complete fit, the calculator also checks later activation times. It can therefore instruct the user to return at an exact minute and then select a whole-hour **Klaar in** value, keeping the resulting cycle fully inside the requested window.
 
 ## Netherlands-first catalogue selection
 
@@ -151,6 +151,6 @@ The request specifies electricity, a Dutch calendar date, and `INTERVAL_QUARTER`
 
 [EnergyZero’s consumer price page](https://consumenten.energyzero.nl/actuele-tarieven) states that next-day electricity prices normally appear around 15:00 and confirms quarter-hour pricing. On 12 August 2026, its API already returned all 96 quarter-hours for 13 August while the previous Utilitarian feed still contained only 12 August; this discrepancy prompted the provider switch.
 
-Laundry Window fetches the endpoint only after the user presses **Suggest today** or **Suggest tomorrow**. The request includes only the calendar date and fixed energy/interval parameters; no selected machine, programme, measured duration, or other browser-stored setting is included. The optimiser compares immediate start and complete cycles permitted by the selected machine’s timer choices and semantics, weighting every covered market interval by the amount of the cycle that overlaps it. A selectable cycle that fits completely inside the displayed low-price band and safety margin always ranks above a cheaper cycle that extends outside it. When no complete fit exists, maximum overlap ranks first and average price breaks ties.
+Laundry Window fetches the endpoint only after the user presses **Suggest today** or **Suggest tomorrow**. The request includes only the calendar date and fixed energy/interval parameters; no selected machine, programme, measured duration, or other browser-stored setting is included. The optimiser compares immediate start and complete cycles permitted by the selected machine’s timer choices and semantics. It also evaluates minute-aligned future activation times when waiting before setting the same timer can create a complete fit. Every covered market interval is weighted by the amount of the cycle that overlaps it. A selectable cycle that fits completely inside the displayed low-price band and safety margin always ranks above a cheaper cycle that extends outside it. When no complete fit exists, maximum overlap ranks first and average price breaks ties.
 
 The result is a market-price signal, not a complete consumer tariff. Taxes, VAT, supplier markups, and other contract-specific components are excluded.
