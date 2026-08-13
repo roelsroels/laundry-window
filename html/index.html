@@ -54,8 +54,8 @@
           <div><h2 data-i18n="windowHeading">Cheap energy window</h2><p data-i18n="windowIntro">Enter it yourself or ask for the cheapest available fit.</p></div>
         </div>
         <div class="field-grid">
-          <label><span data-i18n="starts">Starts</span><input id="cheap-start" type="datetime-local" required></label>
-          <label><span data-i18n="ends">Ends</span><input id="cheap-end" type="datetime-local" required></label>
+          <label><span data-i18n="starts">Cheap window begins</span><input id="cheap-start" type="datetime-local" required></label>
+          <label><span data-i18n="ends">Cheap window ends</span><input id="cheap-end" type="datetime-local" required></label>
         </div>
         <p class="window-context" id="window-context"></p>
 
@@ -88,7 +88,7 @@
             </label>
             <label>
               <span data-i18n="margin">Edge safety margin</span>
-              <select id="safety-margin"><option value="0" data-i18n="noMargin">No margin</option><option value="10">10 minutes</option><option value="15" selected>15 minutes</option><option value="30">30 minutes</option></select>
+              <select id="safety-margin"><option value="0" data-i18n="noMargin" selected>No margin</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option></select>
             </label>
           </div>
           <label class="check-row" id="prewash-row">

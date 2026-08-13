@@ -246,7 +246,10 @@
         ? t("startDeadline", { deadline: timeText(latestStart), margin })
         : t("startDeadlinePassed", { deadline: timeText(latestStart), margin });
     }
-    setMarketStatus(t("marketSuccess", { day: t(dayOffset ? "tomorrow" : "today"), program: programName(currentProgram()), start: momentText(new Date(best.start)), end: momentText(new Date(best.end)), lowStart: momentText(new Date(cheapWindow.start)), lowEnd: momentText(new Date(cheapWindow.end)), percent, price: marketPriceText(best.average), available: momentText(availableUntil), deadline }), "success");
+    const setup = best.activationTime && best.activationTime > new Date($("#planning-time").value).getTime()
+      ? t("marketSetAt", { time: momentText(new Date(best.activationTime)) })
+      : "";
+    setMarketStatus(t("marketSuccess", { day: t(dayOffset ? "tomorrow" : "today"), program: programName(currentProgram()), start: momentText(new Date(best.start)), end: momentText(new Date(best.end)), lowStart: momentText(new Date(cheapWindow.start)), lowEnd: momentText(new Date(cheapWindow.end)), percent, price: marketPriceText(best.average), available: momentText(availableUntil), deadline, setup }), "success");
   }
 
   function updateMarketButtons(activeButton = null) {
@@ -275,11 +278,19 @@
       const intervals = marketPrices.normalisePricePoints(points);
       if (!intervals.length) throw new Error("The price feed returned no usable values");
       const timerRange = currentMachine().timerRange;
-      const best = cheapWindow ? marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange, {
+      const preferredWindow = cheapWindow ? {
         start: cheapWindow.start,
         end: cheapWindow.end,
         marginMinutes: Number($("#safety-margin").value)
-      }) : null;
+      } : null;
+      const currentBest = cheapWindow ? marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange, preferredWindow) : null;
+      const waitBest = cheapWindow ? marketPrices.findCheapestWaitSchedule(points, planning, cycleMinutes(), timerRange, preferredWindow) : null;
+      const protectedStart = preferredWindow ? preferredWindow.start + preferredWindow.marginMinutes * minute : 0;
+      const protectedEnd = preferredWindow ? preferredWindow.end - preferredWindow.marginMinutes * minute : 0;
+      const currentComplete = currentBest && currentBest.start >= protectedStart && currentBest.end <= protectedEnd;
+      const best = waitBest && (!currentComplete || waitBest.average < currentBest.average - 1e-9)
+        ? waitBest
+        : currentBest && { ...currentBest, activationTime: planning.getTime() };
 
       if (!best || !cheapWindow) {
         const unavailable = dayOffset === 1 && !marketPrices.hasPricesForDay(points, planning, dayOffset);
@@ -329,9 +340,21 @@
     const protectedStart = new Date(windowStart.getTime() + margin * minute);
     const protectedEnd = new Date(windowEnd.getTime() - margin * minute);
     const fitting = schedules.filter((item) => item.start >= protectedStart && item.end <= protectedEnd);
-    const marketSchedule = suggestionActive && lastMarketResult ? schedules.find((item) => item.delayHours === lastMarketResult.best.delayHours) : null;
+    const marketBest = suggestionActive && lastMarketResult?.best;
+    const marketSchedule = marketBest ? {
+      ...marketBest,
+      start: new Date(marketBest.start),
+      end: new Date(marketBest.end),
+      activationTime: new Date(marketBest.activationTime || planning),
+      overlapMinutes: overlap(marketBest.start, marketBest.end, windowStart, windowEnd)
+    } : null;
 
-    if (marketSchedule && fitting.includes(marketSchedule)) return renderSchedule(marketSchedule, selected, plannedMinutes, windowStart, windowEnd, true);
+    schedules.sort((a, b) => b.overlapMinutes - a.overlapMinutes);
+    const closestNow = schedules[0];
+
+    if (marketSchedule && marketSchedule.start >= protectedStart && marketSchedule.end <= protectedEnd) {
+      return renderSchedule(marketSchedule, selected, plannedMinutes, windowStart, windowEnd, true, "", 100, "", marketSchedule.activationTime > planning ? closestNow : null);
+    }
 
     if (fitting.length) {
       const centre = (windowStart.getTime() + windowEnd.getTime()) / 2;
@@ -339,8 +362,16 @@
       return renderSchedule(fitting[0], selected, plannedMinutes, windowStart, windowEnd, true);
     }
 
-    schedules.sort((a, b) => b.overlapMinutes - a.overlapMinutes);
-    const closestSchedule = marketSchedule || schedules[0];
+    const waitSchedule = marketPrices.findWaitSchedule(planning, plannedMinutes, machine.timerRange, {
+      start: windowStart.getTime(),
+      end: windowEnd.getTime(),
+      marginMinutes: margin
+    });
+    if (waitSchedule && waitSchedule.activationTime > planning.getTime()) {
+      return renderSchedule({ ...waitSchedule, start: new Date(waitSchedule.start), end: new Date(waitSchedule.end), activationTime: new Date(waitSchedule.activationTime) }, selected, plannedMinutes, windowStart, windowEnd, true, "", 100, "", closestNow);
+    }
+
+    const closestSchedule = marketSchedule || closestNow;
     let message = t("noTimerFit", { timer: localised(machine.timer) });
     let warningTitle = "";
     const windowMinutes = (windowEnd - windowStart) / minute;
@@ -367,21 +398,33 @@
     $(".manual-error").textContent = message;
   }
 
-  function renderSchedule(schedule, selected, plannedMinutes, windowStart, windowEnd, exact, message = "", percent = 0, warningTitle = "") {
+  function renderSchedule(schedule, selected, plannedMinutes, windowStart, windowEnd, exact, message = "", percent = 0, warningTitle = "", nowAlternative = null) {
     const timerName = localised(currentMachine().timer);
+    const planning = new Date($("#planning-time").value);
+    const activationTime = schedule.activationTime ? new Date(schedule.activationTime) : planning;
+    const requiresWait = activationTime > planning;
     $("#result").classList.toggle("result-warning", !exact);
     $("#result-content").innerHTML = `
       <div class="delay-readout${schedule.delayHours === 0 ? " immediate-readout" : ""}"><strong id="delay-number"></strong><span id="delay-unit">h</span></div>
       <h2>${schedule.delayHours === 0 ? t("startNowHeading") : timerName}</h2>
-      <p class="instruction">${t(schedule.delayHours === 0 ? "instructionNow" : "instruction", { timer: timerName })}</p>
+      <p class="instruction">${t(schedule.delayHours === 0 ? "instructionNow" : requiresWait ? "instructionWait" : "instruction", { timer: timerName, time: timeText(activationTime) })}</p>
+      <div class="wait-box" id="wait-box"${requiresWait ? "" : " hidden"}><strong>${t("waitTitle", { time: timeText(activationTime) })}</strong><span id="wait-message"></span></div>
       <div class="warning-box" id="warning-box"${exact ? " hidden" : ""}><strong id="warning-title"></strong><span id="warning-message"></span></div>
       <div class="timeline" aria-label="${t("expectedTiming")}"><div class="timeline-track" id="timeline-track"><span></span></div><div class="timeline-labels"><span><small>${t("washStarts")}</small><strong id="wash-start"></strong></span><span><small>${t("washEnds")}</small><strong id="wash-end"></strong></span></div></div>
-      <dl class="summary-list"><div><dt>${t("programLabel")}</dt><dd id="summary-programme"></dd></div><div><dt>${t("plannedDuration")}</dt><dd id="summary-duration"></dd></div><div><dt>${t(suggestionActive ? "marketBandSummary" : "windowSummary")}</dt><dd id="summary-window"></dd></div></dl>
+      <dl class="summary-list">${requiresWait ? `<div><dt>${t("setMachineAt")}</dt><dd id="summary-setting"></dd></div>` : ""}<div><dt>${t("programLabel")}</dt><dd id="summary-programme"></dd></div><div><dt>${t("plannedDuration")}</dt><dd id="summary-duration"></dd></div><div><dt>${t(suggestionActive ? "marketBandSummary" : "windowSummary")}</dt><dd id="summary-window"></dd></div></dl>
       <button class="refresh-button" id="refresh-result" type="button">${t("refresh")}</button>`;
     $("#delay-number").textContent = schedule.delayHours === 0 ? t("nowReadout") : timerValueText(schedule.delayHours);
     $("#delay-unit").hidden = schedule.delayHours === 0;
     const delayInline = $("#delay-inline");
     if (delayInline) delayInline.textContent = `${timerValueText(schedule.delayHours)}h`;
+    if (requiresWait) {
+      $("#summary-setting").textContent = momentText(activationTime);
+      const waitMinutes = Math.max(1, Math.round((activationTime - planning) / minute));
+      const alternativePercent = nowAlternative ? Math.round(nowAlternative.overlapMinutes / plannedMinutes * 100) : 0;
+      $("#wait-message").textContent = nowAlternative
+        ? t("waitBenefit", { minutes: waitMinutes, timer: timerName, delay: timerValueText(nowAlternative.delayHours), start: momentText(nowAlternative.start), end: momentText(nowAlternative.end), percent: alternativePercent })
+        : t("waitMinutes", { minutes: waitMinutes });
+    }
     $("#wash-start").textContent = momentText(schedule.start);
     $("#wash-end").textContent = momentText(schedule.end);
     $("#summary-programme").textContent = programName(selected);

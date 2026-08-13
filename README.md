@@ -26,7 +26,8 @@ The calculator runs entirely in the browser. It has no analytics, cookies, serve
 - Windows that cross midnight
 - Ten isolated profiles covering Samsung, Bosch, Hisense, AEG, Haier, Inventum, Beko and Siemens
 - Only model-specific, manufacturer-documented programme/reference durations; no guessed cross-model times
-- A configurable safety margin around the cheap-price window
+- A configurable safety margin around the cheap-price window, defaulting to no margin
+- A wait-to-set recommendation when shifting the moment you activate the machine makes a whole-hour timer fit exactly
 - Prewash for the Samsung profile, which Samsung documents as adding approximately 18 minutes
 - Per-programme measured-time overrides, stored only in the current browser
 - A preferred programme per machine, stored only in the current browser
@@ -41,7 +42,9 @@ The **Suggest today** and **Suggest tomorrow** buttons download Dutch prices fro
 
 EnergyZero states that next-day electricity prices normally appear around **15:00**. The previous Utilitarian mirror sometimes lagged after the underlying market had already published; it has been removed from the application.
 
-Laundry Window evaluates the selected programme duration against immediate Start now and every timer value supported by the selected machine. For an end timer it subtracts the cycle duration from the selected completion offset; for a start timer it adds the delay before the cycle begins. It first limits the choice to cycles that fit completely inside the displayed low-price band and selected safety margin, then recommends the one with the lowest duration-weighted average market price. Only when no complete fit exists does it fall back to the candidate with the greatest overlap, using price as the tie-breaker. For today, it also shows the latest safe-start time that keeps the full cycle and selected safety margin inside the low-price band.
+Laundry Window evaluates the selected programme duration against immediate Start now and every timer value supported by the selected machine. For an end timer it subtracts the cycle duration from the selected completion offset; for a start timer it adds the delay before the cycle begins. It also checks whether activating the machine a little later shifts one of those fixed timer values into a complete fit. In that case the result gives both the exact time to return to the machine and the timer value to select—for example, “At 21:15, select 17h”. This avoids accepting a partial fit merely because a whole-hour timer was calculated from the current minute.
+
+For market suggestions, the optimiser first limits the choice to cycles that fit completely inside the displayed low-price band and selected safety margin, then recommends the one with the lowest duration-weighted average market price. Only when no complete fit exists—even after considering a later activation time—does it fall back to the candidate with the greatest overlap, using price as the tie-breaker. For today, it also shows the latest safe-start time that keeps the full cycle and selected safety margin inside the low-price band. The safety margin defaults to **0 minutes**; 10-, 15-, and 30-minute margins remain available under **Fine-tune**.
 
 The green period remains separate from that machine-constrained recommendation. It is the longest contiguous low-price band for the chosen day, aligned to exact 15-minute intervals; its cutoff is `max(€5/MWh, the day’s minimum + €10/MWh)`. The start/end fields contain this actual band—not the proposed wash itself. If the best still-selectable wash extends beyond it, the timeline shows that portion in orange and reports the percentage that remains inside. This prevents a late request from making an already-missed cheap period look 100% reachable.
 
