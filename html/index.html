@@ -3,11 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Calculate the finish-timer setting for supported Samsung and Bosch washing machines.">
+  <meta name="description" content="Calculate the start- or finish-timer setting for supported washing machines.">
   <meta name="theme-color" content="#174e3e">
-  <title>Laundry Window · washing-machine finish timer</title>
+  <title>Laundry Window · washing-machine timer</title>
   <link rel="stylesheet" href="styles.css">
   <script src="i18n.js" defer></script>
+  <script src="machines.js" defer></script>
   <script src="market-prices.js" defer></script>
   <script src="app.js" defer></script>
 </head>
@@ -25,7 +26,7 @@
       <div class="hero-copy">
         <p class="eyebrow" data-i18n="heroEyebrow">CHEAP-ENERGY WASH PLANNER</p>
         <h1 data-i18n-html="heroTitle">Set the time.<br>Skip the maths.</h1>
-        <p class="intro" data-i18n-html="heroIntro">Tell me when electricity is cheap, which machine you use and what you’re washing. I’ll tell you exactly what to select on its <strong>finish timer</strong>.</p>
+        <p class="intro" data-i18n-html="heroIntro">Tell me when electricity is cheap, which machine you use and what you’re washing. I’ll tell you exactly what to select on its <strong>start or finish timer</strong>.</p>
       </div>
       <div class="dial-art" aria-hidden="true">
         <span class="dial-label dial-label-top">3h</span>
@@ -35,7 +36,7 @@
       </div>
     </section>
 
-    <section class="planner" aria-label="Washing-machine finish-timer calculator" data-i18n-aria="plannerLabel">
+    <section class="planner" aria-label="Washing-machine timer calculator" data-i18n-aria="plannerLabel">
       <form class="input-panel" id="planner-form">
         <div class="step-heading">
           <span>1</span>
@@ -62,7 +63,7 @@
           <div class="market-heading">
             <span data-i18n="marketEyebrow">DUTCH DAY-AHEAD PRICES</span>
             <strong data-i18n="marketHeading">Find the cheapest fit</strong>
-            <p data-i18n="marketIntro">Compares every valid finish-timer setting for this programme.</p>
+            <p data-i18n="marketIntro">Compares every valid timer setting for this programme.</p>
           </div>
           <div class="market-actions" aria-label="Choose a price day" data-i18n-aria="marketDayLabel">
             <button id="suggest-today" type="button" data-suggest-day="0" data-i18n="suggestToday">Suggest today</button>
@@ -100,16 +101,16 @@
       <aside class="result-panel" id="result" aria-live="polite">
         <p class="result-kicker" data-i18n="selectMachine">SELECT ON THE MACHINE</p>
         <div id="result-content">
-          <div class="empty-result"><div class="empty-dial" aria-hidden="true">—</div><h2 data-i18n="readyHeading">Ready when you are</h2><p data-i18n="readyText">Choose a valid window to see the finish-timer setting.</p></div>
+          <div class="empty-result"><div class="empty-dial" aria-hidden="true">—</div><h2 data-i18n="readyHeading">Ready when you are</h2><p data-i18n="readyText">Choose a valid window to see the timer setting.</p></div>
         </div>
       </aside>
     </section>
 
     <section class="how-it-works">
-      <div><p class="eyebrow" data-i18n="whyEyebrow">WHY THIS NUMBER?</p><h2 data-i18n-html="whyTitle">The button chooses when the wash <em>ends</em>.</h2></div>
+      <div><p class="eyebrow" data-i18n="whyEyebrow">WHY THIS NUMBER?</p><h2 id="why-title">The button chooses when the wash <em>ends</em>.</h2></div>
       <ol>
-        <li><span>01</span><p id="why-range">Starting now needs no timer; Delay End accepts whole-hour settings from <strong>3 to 19 hours</strong>.</p></li>
-        <li><span>02</span><p data-i18n-html="why2">We subtract the programme time to check that the wash <strong>starts after cheap energy begins</strong>.</p></li>
+        <li><span>01</span><p id="why-range">Starting now needs no timer; Delay End accepts settings from <strong>3 to 19 hours</strong>.</p></li>
+        <li><span>02</span><p id="why-semantics">We subtract the programme time to check that the wash <strong>starts after cheap energy begins</strong>.</p></li>
         <li><span>03</span><p data-i18n-html="why3">We centre the cycle in the window where possible, leaving room for <strong>real-world timing drift</strong>.</p></li>
       </ol>
     </section>
@@ -123,8 +124,8 @@
     <section class="compatibility-section" aria-labelledby="compatibility-heading">
       <div class="compatibility-intro">
         <p class="eyebrow" data-i18n="compatibility">COMPATIBILITY</p>
-        <h2 id="compatibility-heading" data-i18n-html="compatibilityTitle">Two model profiles.<br><em>More machines later.</em></h2>
-        <p data-i18n="compatibilityIntro">Each profile has its own programme baselines and finish-timer range. Choose the exact model before planning.</p>
+        <h2 id="compatibility-heading" data-i18n-html="compatibilityTitle">Ten model profiles.<br><em>Built for the Netherlands.</em></h2>
+        <p data-i18n="compatibilityIntro">Each profile has its own documented programme baselines and timer behaviour. Choose the exact model before planning.</p>
       </div>
       <div class="compatibility-cards">
         <article class="compat-card verified-card">
@@ -132,15 +133,15 @@
           <h3>WF702Y4BKWQ/EN</h3>
           <p data-i18n="exactMachine">The exact machine used to create and check this calculator.</p>
         </article>
-        <article class="compat-card">
-          <span class="compat-status" data-i18n="sameManual">SAME SAMSUNG MANUAL</span>
-          <h3>WF702 · WF700 · WF602 · WF600</h3>
-          <p data-i18n="familyText">Y4BK and B4BK families are covered by the same official programme table. Regional suffixes may differ.</p>
+        <article class="compat-card catalogue-card">
+          <span class="compat-status" data-i18n="nlCatalogue">NL PRIORITY CATALOGUE · AUGUST 2026</span>
+          <h3>Hisense · AEG · Samsung · Haier · Inventum · Beko</h3>
+          <p data-i18n="catalogueText">Popular current Dutch models, selected from a dated retail snapshot and backed by model-specific manufacturer documentation.</p>
         </article>
         <article class="compat-card bosch-card">
-          <span class="compat-status" data-i18n="boschProfile">MODEL PROFILE</span>
-          <h3>Bosch WAE284A7NL/12 · Maxx 7 VarioPerfect</h3>
-          <p data-i18n="boschFamilyText">Documented baseline settings and the 1–24 hour Klaar in range. Adaptive programmes use the measured-time override.</p>
+          <span class="compat-status" data-i18n="documentedProfiles">DOCUMENTED MODEL PROFILES</span>
+          <h3>Bosch WAE284A7NL/12 · WAN2827DNL · Siemens WG44J2A9NL</h3>
+          <p data-i18n="profilePolicy">Only programmes with a trustworthy model-specific duration are included; adaptive programmes can use a local measured-time override.</p>
         </article>
       </div>
     </section>
