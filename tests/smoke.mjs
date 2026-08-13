@@ -84,6 +84,9 @@ test("the market helper chooses the cheapest complete valid schedule", async () 
   assert.equal(new Date(todayBest.start).getDate(), 1);
   assert.equal(new Date(tomorrowBest.start).getDate(), 2);
   assert.equal(market.hasPricesForDay(dayPoints, localPlanning, 1), true);
+  assert.equal(market.isPastTodayWindow(lowToday, new Date(2026, 0, 1, 22, 1), 0), true);
+  assert.equal(market.isPastTodayWindow(lowToday, new Date(2026, 0, 1, 13, 0), 0), false);
+  assert.equal(market.isPastTodayWindow(lowToday, new Date(2026, 0, 1, 22, 1), 1), false);
   assert.equal(market.latestSafeStart(new Date(2026, 0, 1, 15, 45), 78, 15), new Date(2026, 0, 1, 14, 12).getTime());
 
   const boschPointsStart = new Date(2026, 0, 1, 10, 0).getTime();
@@ -235,6 +238,7 @@ test("ten isolated washing-machine profiles are present", async () => {
   assert.match(app, /marketPrices\.scheduleForTimer/);
   assert.match(app, /marketPrices\.findWaitSchedule/);
   assert.match(app, /marketPrices\.findCheapestWaitSchedule/);
+  assert.match(app, /marketPrices\.isPastTodayWindow/);
   assert.match(app, /delayHours === 0/);
   assert.match(app, /instructionNow/);
   assert.match(app, /--outside-before/);
@@ -252,6 +256,8 @@ test("the interface supports remembered English and Dutch translations", async (
   assert.match(script, /raw wholesale market price/);
   assert.match(script, /kale beursprijs/);
   assert.match(script, /normally published around 15:00/);
+  assert.match(script, /No cheap window left today/);
+  assert.match(script, /Geen goedkoop venster meer vandaag/);
   assert.match(script, /Wait until \{time\} for a complete fit/);
   assert.match(script, /Wacht tot \{time\}, zodat de was volledig past/);
   assert.match(script, /Ten model profiles/);

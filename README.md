@@ -46,6 +46,8 @@ Laundry Window evaluates the selected programme duration against immediate Start
 
 For market suggestions, the optimiser first limits the choice to cycles that fit completely inside the displayed low-price band and selected safety margin, then recommends the one with the lowest duration-weighted average market price. Only when no complete fit exists—even after considering a later activation time—does it fall back to the candidate with the greatest overlap, using price as the tie-breaker. For today, it also shows the latest safe-start time that keeps the full cycle and selected safety margin inside the low-price band. The safety margin defaults to **0 minutes**; 10-, 15-, and 30-minute margins remain available under **Fine-tune**.
 
+If today’s identified low-price band has already ended, the app does not turn a zero-overlap fallback into a **Start now** recommendation. It presents a no-timer state instead and offers to calculate tomorrow’s schedule.
+
 The green period remains separate from that machine-constrained recommendation. It is the longest contiguous low-price band for the chosen day, aligned to exact 15-minute intervals; its cutoff is `max(€5/MWh, the day’s minimum + €10/MWh)`. The start/end fields contain this actual band—not the proposed wash itself. If the best still-selectable wash extends beyond it, the timeline shows that portion in orange and reports the percentage that remains inside. This prevents a late request from making an already-missed cheap period look 100% reachable.
 
 Refreshing “now” reruns the same day’s market optimisation so the washer setting cannot silently become stale.
