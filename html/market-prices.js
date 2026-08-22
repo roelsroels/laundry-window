@@ -153,7 +153,8 @@
       }
     });
 
-    candidates.sort((a, b) => a.average - b.average || a.activationTime - b.activationTime || a.delayHours - b.delayHours);
+    // Automatic suggestions prioritise the earliest wash start; price only resolves equal starts.
+    candidates.sort((a, b) => a.start - b.start || a.average - b.average || a.activationTime - b.activationTime || a.delayHours - b.delayHours);
     return candidates[0] || null;
   }
 
@@ -164,13 +165,18 @@
     const marginMinutes = Math.max(0, Number(preferredWindow?.marginMinutes) || 0);
     const protectedStart = windowStart + marginMinutes * minute;
     const protectedEnd = windowEnd - marginMinutes * minute;
-    const currentComplete = currentSchedule
-      && currentSchedule.start >= protectedStart
-      && currentSchedule.end <= protectedEnd;
+    const candidates = [
+      currentSchedule ? { ...currentSchedule, activationTime: planning } : null,
+      waitSchedule
+    ].filter(Boolean);
+    const completeFits = candidates.filter((schedule) => schedule.start >= protectedStart && schedule.end <= protectedEnd);
 
-    if (currentComplete) return { ...currentSchedule, activationTime: planning };
-    if (waitSchedule) return waitSchedule;
-    return currentSchedule ? { ...currentSchedule, activationTime: planning } : null;
+    if (completeFits.length) {
+      // Compare set-now and wait-to-set schedules by the wash itself, not by activation convenience.
+      completeFits.sort((a, b) => a.start - b.start || a.average - b.average || a.activationTime - b.activationTime || a.delayHours - b.delayHours);
+      return completeFits[0];
+    }
+    return candidates[0] || null;
   }
 
   function findLowPriceWindow(rawPoints, planningDate, dayOffset) {
@@ -221,14 +227,14 @@
       const protectedEnd = windowEnd - marginMinutes * minute;
       const completeFits = candidates.filter((candidate) => candidate.start >= protectedStart && candidate.end <= protectedEnd);
       if (completeFits.length) {
-        completeFits.sort((a, b) => a.average - b.average || a.delayHours - b.delayHours);
+        completeFits.sort((a, b) => a.start - b.start || a.average - b.average || a.delayHours - b.delayHours);
         return completeFits[0];
       }
 
       candidates.forEach((candidate) => {
         candidate.windowOverlap = Math.max(0, Math.min(candidate.end, windowEnd) - Math.max(candidate.start, windowStart));
       });
-      candidates.sort((a, b) => b.windowOverlap - a.windowOverlap || a.average - b.average || a.delayHours - b.delayHours);
+      candidates.sort((a, b) => b.windowOverlap - a.windowOverlap || a.start - b.start || a.average - b.average || a.delayHours - b.delayHours);
       return candidates[0];
     }
 
