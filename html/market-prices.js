@@ -105,80 +105,6 @@
     return { start: planning + delay - duration, end: planning + delay };
   }
 
-  function waitBoundsForTimer(cycleMinutes, delayHours, timerRange, preferredWindow) {
-    const windowStart = Number(preferredWindow?.start);
-    const windowEnd = Number(preferredWindow?.end);
-    const marginMinutes = Math.max(0, Number(preferredWindow?.marginMinutes) || 0);
-    const base = scheduleForTimer(0, cycleMinutes, delayHours, timerRange);
-    if (!base || delayHours === 0 || base.start < 0 || !Number.isFinite(windowStart) || !Number.isFinite(windowEnd)) return null;
-
-    const protectedStart = windowStart + marginMinutes * minute;
-    const protectedEnd = windowEnd - marginMinutes * minute;
-    const earliest = protectedStart - base.start;
-    const latest = protectedEnd - base.end;
-    return latest >= earliest ? { earliest, latest } : null;
-  }
-
-  function findWaitSchedule(planningDate, cycleMinutes, timerRange, preferredWindow) {
-    const planning = new Date(planningDate).getTime();
-    if (!Number.isFinite(planning) || !Number.isFinite(cycleMinutes) || cycleMinutes <= 0) return null;
-
-    const candidates = timerChoices(timerRange).map((delayHours) => {
-      const bounds = waitBoundsForTimer(cycleMinutes, delayHours, timerRange, preferredWindow);
-      if (!bounds) return null;
-      const activationTime = Math.ceil(Math.max(planning, bounds.earliest) / minute) * minute;
-      if (activationTime > bounds.latest) return null;
-      return { delayHours, activationTime, ...scheduleForTimer(activationTime, cycleMinutes, delayHours, timerRange) };
-    }).filter(Boolean);
-
-    candidates.sort((a, b) => a.activationTime - b.activationTime || a.delayHours - b.delayHours);
-    return candidates[0] || null;
-  }
-
-  function findCheapestWaitSchedule(rawPoints, planningDate, cycleMinutes, timerRange, preferredWindow) {
-    const planning = new Date(planningDate).getTime();
-    if (!Number.isFinite(planning) || !Number.isFinite(cycleMinutes) || cycleMinutes <= 0) return null;
-    const intervals = normalisePricePoints(rawPoints);
-    const candidates = [];
-
-    timerChoices(timerRange).forEach((delayHours) => {
-      const bounds = waitBoundsForTimer(cycleMinutes, delayHours, timerRange, preferredWindow);
-      if (!bounds) return;
-      const firstMinute = Math.ceil(Math.max(planning, bounds.earliest) / minute) * minute;
-      const lastMinute = Math.floor(bounds.latest / minute) * minute;
-      for (let activationTime = firstMinute; activationTime <= lastMinute; activationTime += minute) {
-        const schedule = scheduleForTimer(activationTime, cycleMinutes, delayHours, timerRange);
-        const average = averagePrice(schedule.start, schedule.end, intervals);
-        if (average !== null) candidates.push({ delayHours, activationTime, ...schedule, average });
-      }
-    });
-
-    // Automatic suggestions prioritise the earliest wash start; price only resolves equal starts.
-    candidates.sort((a, b) => a.start - b.start || a.average - b.average || a.activationTime - b.activationTime || a.delayHours - b.delayHours);
-    return candidates[0] || null;
-  }
-
-  function choosePracticalSchedule(currentSchedule, waitSchedule, planningDate, preferredWindow) {
-    const planning = new Date(planningDate).getTime();
-    const windowStart = Number(preferredWindow?.start);
-    const windowEnd = Number(preferredWindow?.end);
-    const marginMinutes = Math.max(0, Number(preferredWindow?.marginMinutes) || 0);
-    const protectedStart = windowStart + marginMinutes * minute;
-    const protectedEnd = windowEnd - marginMinutes * minute;
-    const candidates = [
-      currentSchedule ? { ...currentSchedule, activationTime: planning } : null,
-      waitSchedule
-    ].filter(Boolean);
-    const completeFits = candidates.filter((schedule) => schedule.start >= protectedStart && schedule.end <= protectedEnd);
-
-    if (completeFits.length) {
-      // Compare set-now and wait-to-set schedules by the wash itself, not by activation convenience.
-      completeFits.sort((a, b) => a.start - b.start || a.average - b.average || a.activationTime - b.activationTime || a.delayHours - b.delayHours);
-      return completeFits[0];
-    }
-    return candidates[0] || null;
-  }
-
   function findLowPriceWindow(rawPoints, planningDate, dayOffset) {
     const bounds = localDayBounds(planningDate, dayOffset);
     const intervals = normalisePricePoints(rawPoints)
@@ -258,5 +184,5 @@
   }
 
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, choosePracticalSchedule, energyZeroPricePoints, findCheapestSchedule, findCheapestWaitSchedule, findLowPriceWindow, findWaitSchedule, hasPricesForDay, isPastTodayWindow, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices };
+  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, isPastTodayWindow, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices };
 })();
