@@ -41,7 +41,7 @@ test("only site assets live in the public web root", async () => {
   await assert.rejects(access(new URL("index.html", root)));
 });
 
-test("the market helper chooses the earliest complete schedule inside the low-price band", async () => {
+test("the market helper chooses the smartest timer value selectable right now", async () => {
   await import(new URL("html/market-prices.js", root));
   const market = globalThis.LaundryMarketPrices;
   const energyZeroPoints = market.energyZeroPricePoints({ base: [{ start: "2026-01-01T00:00:00Z", end: "2026-01-01T00:15:00Z", price: { value: "0.14509" } }] });
@@ -123,42 +123,7 @@ test("the market helper chooses the earliest complete schedule inside the low-pr
   assert.equal(fullFitCheapest.start, fullFitStart + 12.75 * 3600000);
   assert.equal(fullFitCheapest.end, fullFitStart + 14 * 3600000);
 
-  const reportedPlanning = new Date(2026, 7, 13, 20, 58);
-  const reportedWindow = {
-    start: new Date(2026, 7, 14, 13, 0).getTime(),
-    end: new Date(2026, 7, 14, 14, 45).getTime(),
-    marginMinutes: 0
-  };
-  const reportedWait = market.findWaitSchedule(reportedPlanning, 75, { min: 1, max: 24, step: 1, mode: "end" }, reportedWindow);
-  assert.equal(reportedWait.delayHours, 17);
-  assert.equal(reportedWait.activationTime, new Date(2026, 7, 13, 21, 15).getTime());
-  assert.equal(reportedWait.start, new Date(2026, 7, 14, 13, 0).getTime());
-  assert.equal(reportedWait.end, new Date(2026, 7, 14, 14, 15).getTime());
-
-  const reportedMarketWindow = {
-    start: new Date(2026, 7, 14, 12, 45).getTime(),
-    end: new Date(2026, 7, 14, 14, 45).getTime(),
-    marginMinutes: 0
-  };
-  const reportedMarketWait = market.findWaitSchedule(reportedPlanning, 75, { min: 1, max: 24, step: 1, mode: "end" }, reportedMarketWindow);
-  assert.equal(reportedMarketWait.delayHours, 17);
-  assert.equal(reportedMarketWait.activationTime, new Date(2026, 7, 13, 21, 0).getTime());
-  assert.equal(reportedMarketWait.start, new Date(2026, 7, 14, 12, 45).getTime());
-  assert.equal(reportedMarketWait.end, new Date(2026, 7, 14, 14, 0).getTime());
-
-  const cheaperWait = { delayHours: 16, activationTime: new Date(2026, 7, 13, 22, 45).getTime(), start: new Date(2026, 7, 14, 13, 27).getTime(), end: new Date(2026, 7, 14, 14, 45).getTime(), average: 18.5 };
-  const currentCompleteEndTimer = { delayHours: 16, start: new Date(2026, 7, 14, 12, 53).getTime(), end: new Date(2026, 7, 14, 14, 11).getTime(), average: 18.7 };
-  const practicalEndTimer = market.choosePracticalSchedule(currentCompleteEndTimer, cheaperWait, new Date(2026, 7, 13, 22, 11), reportedMarketWindow);
-  assert.equal(practicalEndTimer.start, currentCompleteEndTimer.start, "an earlier complete end-timer schedule beats a later wait-to-set schedule");
-  assert.equal(practicalEndTimer.activationTime, new Date(2026, 7, 13, 22, 11).getTime());
-
-  const currentPartialStartTimer = { delayHours: 2, start: new Date(2026, 7, 14, 12, 15).getTime(), end: new Date(2026, 7, 14, 13, 15).getTime(), average: 12 };
-  const completeWaitStartTimer = { delayHours: 2, activationTime: new Date(2026, 7, 14, 10, 45).getTime(), start: new Date(2026, 7, 14, 12, 45).getTime(), end: new Date(2026, 7, 14, 13, 45).getTime(), average: 15 };
-  assert.equal(market.choosePracticalSchedule(currentPartialStartTimer, completeWaitStartTimer, new Date(2026, 7, 14, 10, 15), reportedMarketWindow).activationTime, completeWaitStartTimer.activationTime, "waiting remains valid when no current start-delay setting fits completely");
-  const currentCompleteStartTimer = { delayHours: 3, start: new Date(2026, 7, 14, 13, 15).getTime(), end: new Date(2026, 7, 14, 14, 15).getTime(), average: 16 };
-  assert.equal(market.choosePracticalSchedule(currentCompleteStartTimer, completeWaitStartTimer, new Date(2026, 7, 14, 10, 15), reportedMarketWindow).start, completeWaitStartTimer.start, "an earlier start-delay schedule beats a later complete setting available now");
-
-  const screenshotPlanning = new Date(2026, 7, 22, 10, 18);
+  const screenshotPlanning = new Date(2026, 7, 22, 10, 36);
   const screenshotDayStart = new Date(2026, 7, 22, 0, 0).getTime();
   const screenshotWindow = {
     start: new Date(2026, 7, 22, 11, 30).getTime(),
@@ -171,23 +136,20 @@ test("the market helper chooses the earliest complete schedule inside the low-pr
     return { timestamp: new Date(timestamp).toISOString(), value: hour >= 13 && hour < 16 ? 1 : 20 };
   });
   const samsungTimer = { min: 3, max: 19, step: 1, mode: "end" };
-  const screenshotCurrent = market.findCheapestSchedule(screenshotPoints, screenshotPlanning, 133, 0, samsungTimer, screenshotWindow);
-  const screenshotWait = market.findCheapestWaitSchedule(screenshotPoints, screenshotPlanning, 133, samsungTimer, screenshotWindow);
-  const screenshotChoice = market.choosePracticalSchedule(screenshotCurrent, screenshotWait, screenshotPlanning, screenshotWindow);
-  assert.equal(screenshotCurrent.start, new Date(2026, 7, 22, 12, 5).getTime(), "current timer choices use the earliest complete start, not the lowest later price");
-  assert.equal(screenshotWait.activationTime, new Date(2026, 7, 22, 10, 43).getTime());
-  assert.equal(screenshotChoice.start, screenshotWindow.start, "waiting 25 minutes aligns the Samsung wash with the start of the cheap window");
-  assert.equal(screenshotChoice.end, new Date(2026, 7, 22, 13, 43).getTime());
-  assert.equal(screenshotChoice.delayHours, 3);
+  const screenshotChoice = market.findCheapestSchedule(screenshotPoints, screenshotPlanning, 133, 0, samsungTimer, screenshotWindow);
+  assert.equal(screenshotChoice.delayHours, 4, "the Samsung recommendation must be selectable immediately");
+  assert.equal(screenshotChoice.start, new Date(2026, 7, 22, 12, 23).getTime());
+  assert.equal(screenshotChoice.end, new Date(2026, 7, 22, 14, 36).getTime());
+  assert.equal("activationTime" in screenshotChoice, false);
 
-  const startTimerWait = market.findWaitSchedule(
-    new Date(2026, 7, 13, 10, 10),
-    30,
-    { min: 2, max: 2, step: 1, mode: "start" },
-    { start: new Date(2026, 7, 13, 12, 30).getTime(), end: new Date(2026, 7, 13, 13, 30).getTime(), marginMinutes: 0 }
-  );
-  assert.equal(startTimerWait.activationTime, new Date(2026, 7, 13, 10, 30).getTime());
-  assert.equal(startTimerWait.start, new Date(2026, 7, 13, 12, 30).getTime());
+  const startTimerPlanning = new Date(2026, 7, 22, 10, 18);
+  const startTimerChoice = market.findCheapestSchedule(screenshotPoints, startTimerPlanning, 20, 0, { min: 0.5, max: 20, step: 0.5, mode: "start" }, screenshotWindow);
+  assert.equal(startTimerChoice.delayHours, 1.5, "start-delay profiles must also return a value selectable immediately");
+  assert.equal(startTimerChoice.start, new Date(2026, 7, 22, 11, 48).getTime());
+  assert.equal(startTimerChoice.end, new Date(2026, 7, 22, 12, 8).getTime());
+  assert.equal(market.findWaitSchedule, undefined);
+  assert.equal(market.findCheapestWaitSchedule, undefined);
+  assert.equal(market.choosePracticalSchedule, undefined);
 
   const schedule = { start, end: start + 60 * 60000 };
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end, 60), { beforePercent: 0, afterPercent: 0 });
@@ -270,9 +232,8 @@ test("ten isolated washing-machine profiles are present", async () => {
   assert.match(app, /marketPrices\.timelineCoverage/);
   assert.match(app, /marketPrices\.latestSafeStart/);
   assert.match(app, /marketPrices\.scheduleForTimer/);
-  assert.match(app, /marketPrices\.findWaitSchedule/);
-  assert.match(app, /marketPrices\.findCheapestWaitSchedule/);
-  assert.match(app, /marketPrices\.choosePracticalSchedule/);
+  assert.doesNotMatch(app, /findWaitSchedule|findCheapestWaitSchedule|choosePracticalSchedule/);
+  assert.doesNotMatch(app, /wait-box|summary-setting|instructionWait/);
   assert.match(app, /marketPrices\.isPastTodayWindow/);
   assert.match(app, /delayHours === 0/);
   assert.match(app, /instructionNow/);
@@ -293,12 +254,11 @@ test("the interface supports remembered English and Dutch translations", async (
   assert.match(script, /normally published around 15:00/);
   assert.match(script, /No cheap window left today/);
   assert.match(script, /Geen goedkoop venster meer vandaag/);
-  assert.match(script, /Find the earliest cheap start/);
-  assert.match(script, /Vind de vroegste goedkope start/);
-  assert.match(script, /Set it now · earliest complete fit/);
-  assert.match(script, /Stel nu in · vroegste volledige fit/);
-  assert.match(script, /Wait until \{time\} for the earliest cheap start/);
-  assert.match(script, /Wacht tot \{time\} voor de vroegste goedkope start/);
+  assert.match(script, /Find the best value to set now/);
+  assert.match(script, /Vind de beste waarde om nu in te stellen/);
+  assert.match(script, /Set it now · complete fit/);
+  assert.match(script, /Stel nu in · past volledig/);
+  assert.doesNotMatch(script, /Wait until|Wacht tot|instructionWait|waitTitle|waitBenefit/);
   assert.match(script, /Ten model profiles/);
   assert.match(script, /Tien modelprofielen/);
 });
