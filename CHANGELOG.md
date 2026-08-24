@@ -9,6 +9,10 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 - Made the semantic release the primary footer version while retaining the exact deployed build commit and branch for diagnostics ([#18](https://github.com/roelsroels/laundry-window/pull/18)).
 - Documented the semantic-version update step for future releases.
 
+### Added
+
+- Added a Laundry Window favicon combining the washer-door and timer motifs in the site’s green, lime, cream and orange palette.
+
 ### Fixed
 
 - Cache-bust every first-party CSS and JavaScript asset during GitHub Pages deployment, preventing stale browser files from showing an outdated footer or application interface ([#19](https://github.com/roelsroels/laundry-window/pull/19)).
