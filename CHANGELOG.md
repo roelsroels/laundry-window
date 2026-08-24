@@ -12,6 +12,7 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 ### Fixed
 
 - Cache-bust every first-party CSS and JavaScript asset during GitHub Pages deployment, preventing stale browser files from showing an outdated footer or application interface ([#19](https://github.com/roelsroels/laundry-window/pull/19)).
+- Correct the committed static version metadata to identify the production environment and `main` branch instead of showing a development/local fallback on direct static hosts.
 
 ## [1.0.0] - 2026-08-24
 

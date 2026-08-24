@@ -50,20 +50,23 @@ test("the deployment stamps a visible branch and commit version", async () => {
   const app = await readFile(new URL("html/app.js", root), "utf8");
   const translations = await readFile(new URL("html/i18n.js", root), "utf8");
   assert.match(version, /version: "1\.0\.0"/);
-  assert.match(version, /commit: "development"/);
-  assert.match(version, /branch: "local"/);
+  assert.match(version, /environment: "production"/);
+  assert.match(version, /branch: "main"/);
+  assert.doesNotMatch(version, /development|local/);
   assert.match(workflow, /Stamp deployed version/);
   assert.match(workflow, /GITHUB_SHA::7/);
   assert.match(workflow, /GITHUB_REF_NAME/);
   assert.match(workflow, /> html\/version\.js/);
   assert.match(workflow, /release_version=/);
   assert.match(workflow, /cache_key="\$release_version-\$short_sha"/);
+  assert.match(workflow, /environment: \"production\"/);
   assert.match(workflow, /for asset in styles\.css i18n\.js machines\.js market-prices\.js version\.js app\.js/);
   assert.match(workflow, /\$asset\?v=\$cache_key/);
   assert.match(app, /LaundryBuild/);
   assert.match(app, /build-version/);
-  assert.match(translations, /Version \{version\} · build \{commit\} · branch \{branch\}/);
-  assert.match(translations, /Versie \{version\} · build \{commit\} · branch \{branch\}/);
+  assert.match(translations, /Version \{version\} · \{environment\} · build \{commit\} · branch \{branch\}/);
+  assert.match(translations, /Versie \{version\} · \{environment\} · branch \{branch\}/);
+  assert.match(app, /build\.commit \? "buildVersion" : "sourceVersion"/);
 });
 
 test("the market helper chooses the smartest timer value selectable right now", async () => {

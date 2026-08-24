@@ -28,7 +28,7 @@ jobs:
           release_version="$(sed -n 's/^[[:space:]]*version: "\([^"]*\)",[[:space:]]*$/\1/p' html/version.js)"
           test -n "$release_version"
           short_sha="${GITHUB_SHA::7}"
-          printf 'window.LaundryBuild = Object.freeze({ version: "%s", commit: "%s", branch: "%s" });\n' \
+          printf 'window.LaundryBuild = Object.freeze({ version: "%s", environment: "production", commit: "%s", branch: "%s" });\n' \
             "$release_version" "$short_sha" "$GITHUB_REF_NAME" > html/version.js
           cache_key="$release_version-$short_sha"
           for asset in styles.css i18n.js machines.js market-prices.js version.js app.js; do
