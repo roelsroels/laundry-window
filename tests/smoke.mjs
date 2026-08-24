@@ -8,6 +8,7 @@ test("the static entrypoint references site assets, languages, and footer suppor
   const html = await readFile(new URL("html/index.html", root), "utf8");
   assert.match(html, /<title>Laundry Window/);
   assert.match(html, /href="styles\.css"/);
+  assert.match(html, /rel="icon" href="favicon\.svg" type="image\/svg\+xml"/);
   assert.match(html, /src="i18n\.js"/);
   assert.match(html, /src="machines\.js"/);
   assert.match(html, /src="market-prices\.js"/);
@@ -34,6 +35,7 @@ test("the static entrypoint references site assets, languages, and footer suppor
 test("only site assets live in the public web root", async () => {
   await Promise.all([
     access(new URL("html/index.html", root)),
+    access(new URL("html/favicon.svg", root)),
     access(new URL("html/styles.css", root)),
     access(new URL("html/i18n.js", root)),
     access(new URL("html/machines.js", root)),
@@ -60,7 +62,7 @@ test("the deployment stamps a visible branch and commit version", async () => {
   assert.match(workflow, /release_version=/);
   assert.match(workflow, /cache_key="\$release_version-\$short_sha"/);
   assert.match(workflow, /environment: \"production\"/);
-  assert.match(workflow, /for asset in styles\.css i18n\.js machines\.js market-prices\.js version\.js app\.js/);
+  assert.match(workflow, /for asset in favicon\.svg styles\.css i18n\.js machines\.js market-prices\.js version\.js app\.js/);
   assert.match(workflow, /\$asset\?v=\$cache_key/);
   assert.match(app, /LaundryBuild/);
   assert.match(app, /build-version/);

@@ -31,7 +31,7 @@ jobs:
           printf 'window.LaundryBuild = Object.freeze({ version: "%s", environment: "production", commit: "%s", branch: "%s" });\n' \
             "$release_version" "$short_sha" "$GITHUB_REF_NAME" > html/version.js
           cache_key="$release_version-$short_sha"
-          for asset in styles.css i18n.js machines.js market-prices.js version.js app.js; do
+          for asset in favicon.svg styles.css i18n.js machines.js market-prices.js version.js app.js; do
             sed -i "s|$asset\"|$asset?v=$cache_key\"|" html/index.html
           done
       - name: Configure Pages
