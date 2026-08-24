@@ -144,7 +144,7 @@ The public site is automatically deployed from `html/` to:
 
 **https://roelsroels.github.io/laundry-window/**
 
-The Pages workflow uploads only the `html/` directory, preserving the same public-file boundary as the nginx configuration. Before uploading, it stamps the exact short Git commit and branch into `html/version.js` and cache-busts that file; the running version is therefore always visible in the site footer. A local checkout shows the safe `development · local` fallback instead.
+The Pages workflow uploads only the `html/` directory, preserving the same public-file boundary as the nginx configuration. The semantic release number is maintained in `html/version.js`; before uploading, the workflow adds the exact short Git commit and branch and cache-busts that file. The release, build and branch running in production are therefore always visible in the site footer. Update the semantic version in `html/version.js` as part of preparing each release.
 
 ## Samsung programme times
 

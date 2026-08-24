@@ -25,10 +25,12 @@ jobs:
         uses: actions/checkout@v6
       - name: Stamp deployed version
         run: |
+          release_version="$(sed -n 's/^[[:space:]]*version: "\([^"]*\)",[[:space:]]*$/\1/p' html/version.js)"
+          test -n "$release_version"
           short_sha="${GITHUB_SHA::7}"
-          printf 'window.LaundryBuild = Object.freeze({ version: "%s", branch: "%s" });\n' \
-            "$short_sha" "$GITHUB_REF_NAME" > html/version.js
-          sed -i "s|src=\"version.js\"|src=\"version.js?v=$short_sha\"|" html/index.html
+          printf 'window.LaundryBuild = Object.freeze({ version: "%s", commit: "%s", branch: "%s" });\n' \
+            "$release_version" "$short_sha" "$GITHUB_REF_NAME" > html/version.js
+          sed -i "s|src=\"version.js\"|src=\"version.js?v=$release_version-$short_sha\"|" html/index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload html web root
