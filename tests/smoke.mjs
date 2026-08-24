@@ -57,7 +57,9 @@ test("the deployment stamps a visible branch and commit version", async () => {
   assert.match(workflow, /GITHUB_REF_NAME/);
   assert.match(workflow, /> html\/version\.js/);
   assert.match(workflow, /release_version=/);
-  assert.match(workflow, /version\.js\?v=\$release_version-\$short_sha/);
+  assert.match(workflow, /cache_key="\$release_version-\$short_sha"/);
+  assert.match(workflow, /for asset in styles\.css i18n\.js machines\.js market-prices\.js version\.js app\.js/);
+  assert.match(workflow, /\$asset\?v=\$cache_key/);
   assert.match(app, /LaundryBuild/);
   assert.match(app, /build-version/);
   assert.match(translations, /Version \{version\} · build \{commit\} · branch \{branch\}/);
