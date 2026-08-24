@@ -6,6 +6,8 @@ A tiny, dependency-free planner with **ten model-specific washing-machine profil
 
 The calculator runs entirely in the browser. It has no analytics, cookies, server-side code, build step, or package manager. On request, it downloads the latest Dutch day-ahead market-price feed to suggest the smartest timer value that can be selected immediately. The footer loads the optional Buy Me a Coffee button and its Bree Serif font from third-party CDNs. All publicly served files live under [`html/`](html/); repository documentation, tests, screenshots, and deployment configuration stay outside the web root.
 
+See the [changelog](CHANGELOG.md) for release history and recent changes.
+
 > [!NOTE]
 > The price buttons call EnergyZero’s public API with the requested calendar date; programme, duration, and other planning values are never sent. As with any web request, the price provider receives ordinary connection metadata such as the visitor's IP address. The footer support button separately loads JavaScript from `cdnjs.buymeacoffee.com`, loads a font from Google Fonts, and links to `buymeacoffee.com/roels`.
 
