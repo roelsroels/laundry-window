@@ -11,6 +11,7 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /src="i18n\.js"/);
   assert.match(html, /src="machines\.js"/);
   assert.match(html, /src="market-prices\.js"/);
+  assert.match(html, /src="version\.js"/);
   assert.match(html, /src="app\.js"/);
   assert.match(html, /Samsung WF702Y4BKWQ\/EN/);
   assert.match(html, /Bosch WAE284A7NL\/12/);
@@ -25,6 +26,7 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /<option value="0" data-i18n="noMargin" selected>/);
   assert.doesNotMatch(html, /<option value="15"[^>]*selected/);
   assert.match(html, /https:\/\/github\.com\/roelsroels\/laundry-window/);
+  assert.match(html, /id="build-version"/);
   assert.match(html, /🇬🇧/);
   assert.doesNotMatch(html, /🇺🇸/);
 });
@@ -37,8 +39,27 @@ test("only site assets live in the public web root", async () => {
     access(new URL("html/machines.js", root)),
     access(new URL("html/app.js", root)),
     access(new URL("html/market-prices.js", root)),
+    access(new URL("html/version.js", root)),
   ]);
   await assert.rejects(access(new URL("index.html", root)));
+});
+
+test("the deployment stamps a visible branch and commit version", async () => {
+  const version = await readFile(new URL("html/version.js", root), "utf8");
+  const workflow = await readFile(new URL(".github/workflows/deploy-pages.yml", root), "utf8");
+  const app = await readFile(new URL("html/app.js", root), "utf8");
+  const translations = await readFile(new URL("html/i18n.js", root), "utf8");
+  assert.match(version, /version: "development"/);
+  assert.match(version, /branch: "local"/);
+  assert.match(workflow, /Stamp deployed version/);
+  assert.match(workflow, /GITHUB_SHA::7/);
+  assert.match(workflow, /GITHUB_REF_NAME/);
+  assert.match(workflow, /> html\/version\.js/);
+  assert.match(workflow, /version\.js\?v=\$short_sha/);
+  assert.match(app, /LaundryBuild/);
+  assert.match(app, /build-version/);
+  assert.match(translations, /Version \{version\} · branch \{branch\}/);
+  assert.match(translations, /Versie \{version\} · branch \{branch\}/);
 });
 
 test("the market helper chooses the smartest timer value selectable right now", async () => {

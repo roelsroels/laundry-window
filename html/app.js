@@ -97,6 +97,11 @@
     return new Intl.DateTimeFormat(i18n.language === "nl" ? "nl-NL" : "en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
   }
 
+  function updateBuildVersion() {
+    const build = window.LaundryBuild || { version: "development", branch: "local" };
+    $("#build-version").textContent = t("buildVersion", build);
+  }
+
   function programName(item) {
     return localised(item.label);
   }
@@ -479,6 +484,7 @@
   updatePreferenceControls();
   updateSafetyOptions();
   updateWindowContext();
+  updateBuildVersion();
 
   i18n.onChange(() => {
     fillMachines();
@@ -488,6 +494,7 @@
     updatePreferenceControls();
     updateSafetyOptions();
     updateWindowContext();
+    updateBuildVersion();
     updateMarketButtons();
     if (lastExpiredMarketWindow) renderExpiredMarketWindow();
     else {
