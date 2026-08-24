@@ -23,6 +23,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Stamp deployed version
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          printf 'window.LaundryBuild = Object.freeze({ version: "%s", branch: "%s" });\n' \
+            "$short_sha" "$GITHUB_REF_NAME" > html/version.js
+          sed -i "s|src=\"version.js\"|src=\"version.js?v=$short_sha\"|" html/index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload html web root
