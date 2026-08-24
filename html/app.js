@@ -98,7 +98,7 @@
   }
 
   function updateBuildVersion() {
-    const build = window.LaundryBuild || { version: "development", branch: "local" };
+    const build = window.LaundryBuild || { version: "1.0.0", commit: "development", branch: "local" };
     $("#build-version").textContent = t("buildVersion", build);
   }
 
