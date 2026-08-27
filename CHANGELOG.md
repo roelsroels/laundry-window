@@ -4,6 +4,8 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-08-27
+
 ### Changed
 
 - Made the semantic release the primary footer version while retaining the exact deployed build commit and branch for diagnostics ([#18](https://github.com/roelsroels/laundry-window/pull/18)).
@@ -11,12 +13,12 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 
 ### Added
 
-- Added a Laundry Window favicon combining the washer-door and timer motifs in the site’s green, lime, cream and orange palette.
+- Added a Laundry Window favicon combining the washer-door and timer motifs in the site’s green, lime, cream and orange palette ([#22](https://github.com/roelsroels/laundry-window/pull/22)).
 
 ### Fixed
 
 - Cache-bust every first-party CSS and JavaScript asset during GitHub Pages deployment, preventing stale browser files from showing an outdated footer or application interface ([#19](https://github.com/roelsroels/laundry-window/pull/19)).
-- Correct the committed static version metadata to identify the production environment and `main` branch instead of showing a development/local fallback on direct static hosts.
+- Corrected the committed static version metadata to identify the production environment and `main` branch instead of showing a development/local fallback on direct static hosts ([#21](https://github.com/roelsroels/laundry-window/pull/21)).
 
 ## [1.0.0] - 2026-08-24
 
@@ -50,5 +52,6 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 - Added a clear “no cheap window left today” result instead of recommending an immediate wash after the identified window had expired ([#13](https://github.com/roelsroels/laundry-window/pull/13)).
 - Applied scheduling fixes generically across all brands and timer modes rather than special-casing individual Samsung or Bosch profiles ([#14](https://github.com/roelsroels/laundry-window/pull/14)).
 
-[Unreleased]: https://github.com/roelsroels/laundry-window/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/roelsroels/laundry-window/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/roelsroels/laundry-window/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/roelsroels/laundry-window/releases/tag/v1.0.0
