@@ -98,7 +98,7 @@
   }
 
   function updateBuildVersion() {
-    const build = window.LaundryBuild || { version: "1.0.0", environment: "production", branch: "main" };
+    const build = window.LaundryBuild || { version: "1.0.1", environment: "production", branch: "main" };
     const values = { ...build, environment: t(build.environment === "production" ? "productionEnvironment" : "developmentEnvironment") };
     $("#build-version").textContent = t(build.commit ? "buildVersion" : "sourceVersion", values);
   }
