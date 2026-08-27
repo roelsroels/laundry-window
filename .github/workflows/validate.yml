@@ -18,6 +18,7 @@ jobs:
           node-version: 22
       - name: Check JavaScript syntax
         run: |
+          node --check html/theme.js
           node --check html/machines.js
           node --check html/market-prices.js
           node --check html/i18n.js
