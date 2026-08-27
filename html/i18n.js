@@ -4,7 +4,7 @@
   const translations = {
     en: {
       metaDescription: "Calculate the start- or finish-timer setting for supported washing machines.",
-      homeLabel: "Laundry Window home", languageLabel: "Language", englishLabel: "English (UK)", dutchLabel: "Dutch", marketDayLabel: "Choose whether to optimise for today or tomorrow",
+      homeLabel: "Laundry Window home", languageLabel: "Language", englishLabel: "English (UK)", dutchLabel: "Dutch", switchToDark: "Switch to dark mode", switchToLight: "Switch to light mode", marketDayLabel: "Choose whether to optimise for today or tomorrow",
       heroEyebrow: "CHEAP-ENERGY WASH PLANNER", heroTitle: "Set the time.<br>Skip the maths.", heroIntro: "Tell me when electricity is cheap, which machine you use and what you’re washing. I’ll tell you exactly what to select on its <strong>start or finish timer</strong>.",
       plannerLabel: "Washing-machine timer calculator", programHeading: "Machine & washing programme", programIntro: "Model-specific baseline times, with your choices remembered locally.", machineLabel: "Washing machine", programLabel: "Programme",
       windowHeading: "Cheap energy window", windowIntro: "Enter a window yourself or get the smartest timer value to select right now.", starts: "Cheap window begins", ends: "Cheap window ends", manualWindow: "These times describe the cheap-energy window, not a required wash start and finish.", marketWindow: "Suggested low-price band from exact 15-minute market intervals. The {margin}-minute safety margin is applied inside it.",
@@ -21,7 +21,7 @@
     },
     nl: {
       metaDescription: "Bereken de start- of eindtimerinstelling voor ondersteunde wasmachines.",
-      homeLabel: "Laundry Window startpagina", languageLabel: "Taal", englishLabel: "Engels (VK)", dutchLabel: "Nederlands", marketDayLabel: "Kies of je voor vandaag of morgen wilt optimaliseren",
+      homeLabel: "Laundry Window startpagina", languageLabel: "Taal", englishLabel: "Engels (VK)", dutchLabel: "Nederlands", switchToDark: "Schakel donkere modus in", switchToLight: "Schakel lichte modus in", marketDayLabel: "Kies of je voor vandaag of morgen wilt optimaliseren",
       heroEyebrow: "WASPLANNER VOOR GOEDKOPE STROOM", heroTitle: "Stel de tijd in.<br>Sla het rekenen over.", heroIntro: "Vertel wanneer stroom goedkoop is, welke machine je gebruikt en welk programma je kiest. Ik vertel precies wat je bij de <strong>start- of eindtimer</strong> moet instellen.",
       plannerLabel: "Timercalculator voor de wasmachine", programHeading: "Machine en wasprogramma", programIntro: "Modelgebonden basistijden, met je keuzes lokaal onthouden.", machineLabel: "Wasmachine", programLabel: "Programma",
       windowHeading: "Goedkope-stroomvenster", windowIntro: "Vul zelf een venster in of vind de slimste timerwaarde om nu in te stellen.", starts: "Goedkoop venster begint", ends: "Goedkoop venster eindigt", manualWindow: "Deze tijden beschrijven het goedkope-stroomvenster, niet een verplichte start- en eindtijd van de was.", marketWindow: "Voorgestelde lage-prijsperiode uit exacte marktkwartieren. De veiligheidsmarge van {margin} minuten wordt daarbinnen toegepast.",

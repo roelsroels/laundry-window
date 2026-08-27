@@ -9,6 +9,7 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /<title>Laundry Window/);
   assert.match(html, /href="styles\.css"/);
   assert.match(html, /rel="icon" href="favicon\.svg" type="image\/svg\+xml"/);
+  assert.match(html, /src="theme\.js"/);
   assert.match(html, /src="i18n\.js"/);
   assert.match(html, /src="machines\.js"/);
   assert.match(html, /src="market-prices\.js"/);
@@ -28,6 +29,7 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.doesNotMatch(html, /<option value="15"[^>]*selected/);
   assert.match(html, /https:\/\/github\.com\/roelsroels\/laundry-window/);
   assert.match(html, /id="build-version"/);
+  assert.match(html, /id="theme-switch"/);
   assert.match(html, /🇬🇧/);
   assert.doesNotMatch(html, /🇺🇸/);
 });
@@ -37,6 +39,7 @@ test("only site assets live in the public web root", async () => {
     access(new URL("html/index.html", root)),
     access(new URL("html/favicon.svg", root)),
     access(new URL("html/styles.css", root)),
+    access(new URL("html/theme.js", root)),
     access(new URL("html/i18n.js", root)),
     access(new URL("html/machines.js", root)),
     access(new URL("html/app.js", root)),
@@ -51,7 +54,7 @@ test("the deployment stamps a visible branch and commit version", async () => {
   const workflow = await readFile(new URL(".github/workflows/deploy-pages.yml", root), "utf8");
   const app = await readFile(new URL("html/app.js", root), "utf8");
   const translations = await readFile(new URL("html/i18n.js", root), "utf8");
-  assert.match(version, /version: "1\.0\.1"/);
+  assert.match(version, /version: "1\.0\.2"/);
   assert.match(version, /environment: "production"/);
   assert.match(version, /branch: "main"/);
   assert.doesNotMatch(version, /development|local/);
@@ -62,7 +65,7 @@ test("the deployment stamps a visible branch and commit version", async () => {
   assert.match(workflow, /release_version=/);
   assert.match(workflow, /cache_key="\$release_version-\$short_sha"/);
   assert.match(workflow, /environment: \"production\"/);
-  assert.match(workflow, /for asset in favicon\.svg styles\.css i18n\.js machines\.js market-prices\.js version\.js app\.js/);
+  assert.match(workflow, /for asset in favicon\.svg theme\.js styles\.css i18n\.js machines\.js market-prices\.js version\.js app\.js/);
   assert.match(workflow, /\$asset\?v=\$cache_key/);
   assert.match(app, /LaundryBuild/);
   assert.match(app, /build-version/);
@@ -291,6 +294,23 @@ test("the interface supports remembered English and Dutch translations", async (
   assert.doesNotMatch(script, /Wait until|Wacht tot|instructionWait|waitTitle|waitBenefit/);
   assert.match(script, /Ten model profiles/);
   assert.match(script, /Tien modelprofielen/);
+});
+
+test("the interface follows the system theme and remembers a manual override", async () => {
+  const theme = await readFile(new URL("html/theme.js", root), "utf8");
+  const styles = await readFile(new URL("html/styles.css", root), "utf8");
+  const app = await readFile(new URL("html/app.js", root), "utf8");
+  const translations = await readFile(new URL("html/i18n.js", root), "utf8");
+  assert.match(theme, /prefers-color-scheme: dark/);
+  assert.match(theme, /laundry-theme/);
+  assert.match(theme, /saved === "light" \|\| saved === "dark"/);
+  assert.match(theme, /systemTheme\.addEventListener\("change"/);
+  assert.match(styles, /:root\[data-theme="dark"\]/);
+  assert.match(styles, /\.theme-switch/);
+  assert.match(app, /theme\.onChange\(updateThemeSwitch\)/);
+  assert.match(app, /aria-pressed/);
+  assert.match(translations, /Switch to dark mode/);
+  assert.match(translations, /Schakel donkere modus in/);
 });
 
 test("the nginx example includes safe static defaults", async () => {

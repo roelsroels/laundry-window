@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#174e3e">
   <title>Laundry Window · washing-machine timer</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <script src="theme.js"></script>
   <link rel="stylesheet" href="styles.css">
   <script src="i18n.js" defer></script>
   <script src="machines.js" defer></script>
@@ -21,7 +22,15 @@
         <span class="brand-mark" aria-hidden="true"><i></i></span>
         Laundry Window
       </a>
-      <div class="header-tools"><span class="model-chip" id="model-chip">Samsung WF702Y4BKWQ/EN</span><div class="language-switch" role="group" aria-label="Language" data-i18n-aria="languageLabel"><button type="button" data-language="nl" aria-label="Nederlands" data-i18n-aria="dutchLabel">🇳🇱</button><button type="button" data-language="en" aria-label="English (UK)" data-i18n-aria="englishLabel">🇬🇧</button></div></div>
+      <div class="header-tools">
+        <span class="model-chip" id="model-chip">Samsung WF702Y4BKWQ/EN</span>
+        <div class="language-switch" role="group" aria-label="Language" data-i18n-aria="languageLabel"><button type="button" data-language="nl" aria-label="Nederlands" data-i18n-aria="dutchLabel">🇳🇱</button><button type="button" data-language="en" aria-label="English (UK)" data-i18n-aria="englishLabel">🇬🇧</button></div>
+        <button class="theme-switch" id="theme-switch" type="button" aria-pressed="false" aria-label="Switch to dark mode">
+          <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+          <span class="theme-switch-knob" aria-hidden="true"></span>
+        </button>
+      </div>
     </header>
 
     <section class="hero" id="top">

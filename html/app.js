@@ -13,6 +13,7 @@
   const marketButtons = Array.from(document.querySelectorAll("[data-suggest-day]"));
   const marketPrices = window.LaundryMarketPrices;
   const i18n = window.LaundryI18n;
+  const theme = window.LaundryTheme;
   const t = (key, values) => i18n.t(key, values);
   const localised = (value) => typeof value === "string" ? value : value?.[i18n.language] || value?.en || "";
   let machineId = MACHINES[0].id;
@@ -213,6 +214,15 @@
     const options = $("#safety-margin").options;
     options[0].textContent = t("noMargin");
     Array.from(options).slice(1).forEach((option) => { option.textContent = t("minutes", { count: option.value }); });
+  }
+
+  function updateThemeSwitch() {
+    const button = $("#theme-switch");
+    const dark = theme.current === "dark";
+    const label = t(dark ? "switchToLight" : "switchToDark");
+    button.setAttribute("aria-pressed", String(dark));
+    button.setAttribute("aria-label", label);
+    button.title = label;
   }
 
   function setMarketStatus(message, state = "") {
@@ -486,6 +496,9 @@
   updateSafetyOptions();
   updateWindowContext();
   updateBuildVersion();
+  updateThemeSwitch();
+
+  theme.onChange(updateThemeSwitch);
 
   i18n.onChange(() => {
     fillMachines();
@@ -496,6 +509,7 @@
     updateSafetyOptions();
     updateWindowContext();
     updateBuildVersion();
+    updateThemeSwitch();
     updateMarketButtons();
     if (lastExpiredMarketWindow) renderExpiredMarketWindow();
     else {
@@ -510,6 +524,7 @@
     $("#advanced-toggle").setAttribute("aria-expanded", String(!panel.hidden));
     $("#advanced-toggle span").textContent = panel.hidden ? "+" : "−";
   });
+  $("#theme-switch").addEventListener("click", theme.toggle);
   machineSelect.addEventListener("change", updateMachine);
   $("#use-now").addEventListener("click", useNow);
   $("#set-preferred-programme").addEventListener("click", savePreferredProgram);
