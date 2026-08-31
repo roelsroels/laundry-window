@@ -23,6 +23,8 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /data-slug="roels"/);
   assert.match(html, /data-text="Buy me a beer"/);
   assert.match(html, /EnergyZero/);
+  assert.match(html, /https:\/\/www\.energyzero\.nl\/actuele-prijzen/);
+  assert.doesNotMatch(html, /consumenten\.energyzero\.nl/);
   assert.match(html, /data-suggest-day="0"/);
   assert.match(html, /data-suggest-day="1"/);
   assert.match(html, /<option value="0" data-i18n="noMargin" selected>/);
@@ -54,7 +56,7 @@ test("the deployment stamps a visible branch and commit version", async () => {
   const workflow = await readFile(new URL(".github/workflows/deploy-pages.yml", root), "utf8");
   const app = await readFile(new URL("html/app.js", root), "utf8");
   const translations = await readFile(new URL("html/i18n.js", root), "utf8");
-  assert.match(version, /version: "1\.0\.2"/);
+  assert.match(version, /version: "1\.0\.3"/);
   assert.match(version, /environment: "production"/);
   assert.match(version, /branch: "main"/);
   assert.doesNotMatch(version, /development|local/);
@@ -294,6 +296,8 @@ test("the interface supports remembered English and Dutch translations", async (
   assert.doesNotMatch(script, /Wait until|Wacht tot|instructionWait|waitTitle|waitBenefit/);
   assert.match(script, /Ten model profiles/);
   assert.match(script, /Tien modelprofielen/);
+  assert.match(script, /https:\/\/www\.energyzero\.nl\/actuele-prijzen/);
+  assert.doesNotMatch(script, /consumenten\.energyzero\.nl/);
 });
 
 test("the interface follows the system theme and remembers a manual override", async () => {
