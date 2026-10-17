@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/roelsroels/laundry-window/security/advisories/new
+    about: Report security-sensitive problems privately instead of opening a public issue.
+  - name: Use Laundry Window
+    url: https://roelsroels.github.io/laundry-window/
+    about: Open the current production version of the calculator.

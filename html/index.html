@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -48,7 +48,7 @@
     </section>
 
     <section class="planner" aria-label="Washing-machine timer calculator" data-i18n-aria="plannerLabel">
-      <form class="input-panel" id="planner-form">
+      <div class="input-panel" id="planner-form">
         <div class="step-heading">
           <span>1</span>
           <div><h2 data-i18n="programHeading">Machine &amp; washing programme</h2><p data-i18n="programIntro">Model-specific baseline times, with your choices remembered locally.</p></div>
@@ -76,7 +76,7 @@
             <strong data-i18n="marketHeading">Find the cheapest fit</strong>
             <p data-i18n="marketIntro">Compares every valid timer setting for this programme.</p>
           </div>
-          <div class="market-actions" aria-label="Choose a price day" data-i18n-aria="marketDayLabel">
+          <div class="market-actions" role="group" aria-label="Choose a price day" data-i18n-aria="marketDayLabel">
             <button id="suggest-today" type="button" data-suggest-day="0" data-i18n="suggestToday">Suggest today</button>
             <button id="suggest-tomorrow" type="button" data-suggest-day="1" data-i18n="suggestTomorrow">Suggest tomorrow</button>
           </div>
@@ -87,16 +87,20 @@
         <button class="advanced-toggle" id="advanced-toggle" type="button" aria-expanded="false"><b data-i18n="fineTune">Fine-tune</b> <span aria-hidden="true">+</span></button>
         <div class="advanced-panel" id="advanced-panel" hidden>
           <div class="advanced-title"><h3 data-i18n="tuneHeading">Make it match your machine</h3><p data-i18n="tuneIntro">Optional—defaults already work.</p></div>
-          <label>
+          <div>
+            <label for="planning-time">
             <span data-i18n="settingAt">Setting the machine at</span>
+            </label>
             <div class="input-with-button"><input id="planning-time" type="datetime-local"><button id="use-now" type="button" data-i18n="now">Now</button></div>
-          </label>
+          </div>
           <div class="field-grid compact">
-            <label>
+            <div>
+              <label for="measured-time">
               <span data-i18n="measured">Your measured programme time</span>
+              </label>
               <div class="suffix-input"><input id="measured-time" type="number" min="1" max="600"><em>min</em></div>
               <small id="measured-note" data-i18n="savedDevice">Saved on this device.</small>
-            </label>
+            </div>
             <label>
               <span data-i18n="margin">Edge safety margin</span>
               <select id="safety-margin"><option value="0" data-i18n="noMargin" selected>No margin</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option></select>
@@ -107,7 +111,7 @@
             <span><strong data-i18n="addPrewash">Add prewash</strong><small data-i18n="prewashNote">Samsung says this adds about 18 minutes.</small></span>
           </label>
         </div>
-      </form>
+      </div>
 
       <aside class="result-panel" id="result" aria-live="polite">
         <p class="result-kicker" data-i18n="selectMachine">SELECT ON THE MACHINE</p>
@@ -165,7 +169,7 @@
         <span class="footer-version" id="build-version">Version 1.0.1 · production · branch main</span>
       </div>
       <div class="footer-support">
-        <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="roels" data-color="#40DCA5" data-emoji="🍺"  data-font="Bree" data-text="Buy me a beer" data-outline-color="#000000" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>
+        <a class="support-button" href="https://buymeacoffee.com/roels" rel="noreferrer"><span aria-hidden="true">🍺</span> Buy me a beer</a>
       </div>
     </footer>
   </main>

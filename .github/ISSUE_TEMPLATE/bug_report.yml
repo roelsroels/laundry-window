@@ -1,0 +1,71 @@
+name: Bug report
+description: Report an incorrect calculation, broken interface or documentation problem.
+title: "Bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting a problem. Do not include passwords, API keys, serial numbers or other private information.
+  - type: input
+    id: version
+    attributes:
+      label: Version and build
+      description: Copy the version/build line from the website footer.
+      placeholder: Version 1.0.3 · production · build abc1234 · branch main
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: Safari 20 on macOS 17, or Firefox on Android
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Timer calculation
+        - Market-price suggestion
+        - Machine or programme data
+        - Language or theme
+        - Accessibility
+        - Documentation or deployment
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the selected machine, programme, cheap window and planning time when the calculation is involved.
+      placeholder: |
+        1. Select …
+        2. Enter …
+        3. Choose …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result and screenshots
+      description: Drag screenshots here if they help explain the issue.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I refreshed “now” before reporting a scheduling issue.
+          required: true
+        - label: I searched existing issues for the same problem.
+          required: true

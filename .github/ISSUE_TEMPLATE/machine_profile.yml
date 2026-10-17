@@ -1,0 +1,70 @@
+name: Washing-machine profile request
+description: Request support for a specific model using exact identification and source material.
+title: "Machine: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: Please identify the exact regional model. Similar-looking machines can have different programmes and timer behaviour. Cover the serial number in photos; it is not needed.
+  - type: input
+    id: brand
+    attributes:
+      label: Brand
+      placeholder: Bosch
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Complete model identifier
+      description: This may be called model code, E-Nr., PNC, product number or service number. Include every suffix.
+      placeholder: WAE284A7NL/12
+    validations:
+      required: true
+  - type: input
+    id: region
+    attributes:
+      label: Country or region
+      placeholder: Netherlands
+    validations:
+      required: true
+  - type: textarea
+    id: photos
+    attributes:
+      label: Identification-label and control-panel photos
+      description: Drag in a readable label photo and a full control-panel photo. Cover the serial number first.
+    validations:
+      required: true
+  - type: input
+    id: manual
+    attributes:
+      label: Official manual or product-page URL
+      description: Leave blank only if no official source can be found.
+  - type: textarea
+    id: timer
+    attributes:
+      label: Timer behaviour
+      description: State whether it means starts in, ends in, Delay End, Ready in, or something else, plus minimum, maximum and increments.
+      placeholder: Ready in; 1–24 hours; whole-hour increments
+    validations:
+      required: true
+  - type: textarea
+    id: programmes
+    attributes:
+      label: Programme durations
+      description: List only model-specific documented/reference times or display measurements, including temperature and options.
+      placeholder: |
+        Cotton 40 °C — 150 min — official manual page 34
+        Super quick — 15 min — displayed with default options
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy and evidence
+      options:
+        - label: I removed or covered the serial number and other personal information.
+          required: true
+        - label: I have not copied durations from a merely similar model.
+          required: true
