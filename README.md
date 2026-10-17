@@ -1,6 +1,10 @@
 # Laundry Window
 
 [![Validate static site](https://github.com/roelsroels/laundry-window/actions/workflows/validate.yml/badge.svg)](https://github.com/roelsroels/laundry-window/actions/workflows/validate.yml)
+[![Deploy to GitHub Pages](https://github.com/roelsroels/laundry-window/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/roelsroels/laundry-window/actions/workflows/deploy-pages.yml)
+[![Latest release](https://img.shields.io/github/v/release/roelsroels/laundry-window?display_name=tag&sort=semver&label=release)](https://github.com/roelsroels/laundry-window/releases/latest)
+[![Live site](https://img.shields.io/badge/live-Laundry%20Window-174e3e?logo=githubpages&logoColor=white)](https://roelsroels.github.io/laundry-window/)
+[![License: MIT](https://img.shields.io/github/license/roelsroels/laundry-window)](LICENSE)
 
 A tiny, dependency-free planner with **ten model-specific washing-machine profiles**. Choose the exact model, enter a cheap electricity-price window and select a programme; Laundry Window calculates the value to select on that machine’s start- or finish-timer control.
 
