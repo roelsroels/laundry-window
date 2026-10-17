@@ -2,9 +2,16 @@
 
 [![Validate static site](https://github.com/roelsroels/laundry-window/actions/workflows/validate.yml/badge.svg)](https://github.com/roelsroels/laundry-window/actions/workflows/validate.yml)
 [![Deploy to GitHub Pages](https://github.com/roelsroels/laundry-window/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/roelsroels/laundry-window/actions/workflows/deploy-pages.yml)
-[![Latest release](https://img.shields.io/github/v/release/roelsroels/laundry-window?display_name=tag&sort=semver&label=release)](https://github.com/roelsroels/laundry-window/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/roelsroels/laundry-window?display_name=tag&label=release&cacheSeconds=300)](https://github.com/roelsroels/laundry-window/releases/latest)
+[![Release date](https://img.shields.io/github/release-date/roelsroels/laundry-window?label=released)](https://github.com/roelsroels/laundry-window/releases/latest)
+[![Last commit](https://img.shields.io/github/last-commit/roelsroels/laundry-window/main?label=last%20commit)](https://github.com/roelsroels/laundry-window/commits/main/)
+<br>
 [![Live site](https://img.shields.io/badge/live-Laundry%20Window-174e3e?logo=githubpages&logoColor=white)](https://roelsroels.github.io/laundry-window/)
 [![License: MIT](https://img.shields.io/github/license/roelsroels/laundry-window)](LICENSE)
+[![Machine profiles: 10](https://img.shields.io/badge/machine%20profiles-10-d7f06d?labelColor=174e3e)](#compatibility)
+[![Runtime dependencies: none](https://img.shields.io/badge/runtime%20dependencies-none-d7f06d?labelColor=174e3e)](#repository-layout)
+[![Interface: English and Dutch](https://img.shields.io/badge/interface-English%20%7C%20Dutch-d7f06d?labelColor=174e3e)](#what-it-handles)
+[![Price intervals: 15 minutes](https://img.shields.io/badge/price%20intervals-15%20minutes-d7f06d?labelColor=174e3e)](#live-market-price-suggestions)
 
 A tiny, dependency-free planner with **ten model-specific washing-machine profiles**. Choose the exact model, enter a cheap electricity-price window and select a programme; Laundry Window calculates the value to select on that machine’s start- or finish-timer control.
 
