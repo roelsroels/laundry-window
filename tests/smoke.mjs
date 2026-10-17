@@ -51,6 +51,24 @@ test("only site assets live in the public web root", async () => {
   await assert.rejects(access(new URL("index.html", root)));
 });
 
+test("the README exposes the maintained project badge inventory", async () => {
+  const readme = await readFile(new URL("README.md", root), "utf8");
+  const badgeBlock = readme.slice(0, readme.indexOf("A tiny, dependency-free planner"));
+  assert.match(badgeBlock, /actions\/workflows\/validate\.yml\/badge\.svg/);
+  assert.match(badgeBlock, /actions\/workflows\/deploy-pages\.yml\/badge\.svg/);
+  assert.match(badgeBlock, /github\/v\/release\/roelsroels\/laundry-window\?display_name=tag&label=release&cacheSeconds=300/);
+  assert.match(badgeBlock, /github\/release-date\/roelsroels\/laundry-window/);
+  assert.match(badgeBlock, /github\/last-commit\/roelsroels\/laundry-window\/main/);
+  assert.match(badgeBlock, /live-Laundry%20Window/);
+  assert.match(badgeBlock, /github\/license\/roelsroels\/laundry-window/);
+  assert.match(badgeBlock, /machine%20profiles-10/);
+  assert.match(badgeBlock, /runtime%20dependencies-none/);
+  assert.match(badgeBlock, /interface-English%20%7C%20Dutch/);
+  assert.match(badgeBlock, /price%20intervals-15%20minutes/);
+  assert.equal((badgeBlock.match(/\[!\[/g) || []).length, 11);
+  assert.doesNotMatch(badgeBlock, /sort=semver|release-invalid/);
+});
+
 test("the deployment stamps a visible branch and commit version", async () => {
   const version = await readFile(new URL("html/version.js", root), "utf8");
   const workflow = await readFile(new URL(".github/workflows/deploy-pages.yml", root), "utf8");
