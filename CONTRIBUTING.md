@@ -26,6 +26,8 @@ git diff --check
 
 The pull request checks additionally run CodeQL, link validation and a Lighthouse accessibility audit.
 
+The link workflow checks user-facing Markdown and HTML. Official Hisense, AEG and Beko source domains are excluded because they reject or break automated HTTP clients; their URLs remain documented for manual review. Runtime API URLs are covered by application tests because their bare endpoints require request parameters and cannot be validated as ordinary links.
+
 ## Adding a washing machine
 
 Use the detailed [machine-profile checklist and reusable AI prompt](README.md#add-another-washing-machine). Every profile needs an exact model identifier, manufacturer-backed programme/reference durations, documented timer semantics and source notes in [`docs/SOURCES.md`](docs/SOURCES.md). Never infer timing data from a visually similar model.
