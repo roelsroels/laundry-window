@@ -4,6 +4,18 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Added CodeQL security scanning, scheduled link validation and a Lighthouse accessibility gate, each represented by a real workflow badge.
+- Added a security policy, private vulnerability reporting, dependency alerts and automatic security fixes, a contributor guide, structured bug and washing-machine request forms, a pull request checklist and monthly GitHub Actions dependency updates.
+- Added relevant project-health, community, issue and support badges while deliberately excluding vanity counters.
+
+### Changed
+
+- Updated and commit-pinned the GitHub Actions used for validation and Pages deployment.
+- Replaced the third-party Buy Me a Coffee widget with an accessible first-party-styled link, eliminating its runtime JavaScript and Google Font requests and allowing a stricter Content Security Policy.
+- Improved small-text contrast and corrected form semantics so the static page passes automated HTML and accessibility checks.
+
 ## [1.0.3] - 2026-08-31
 
 ### Fixed

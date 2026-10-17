@@ -19,9 +19,10 @@ test("the static entrypoint references site assets, languages, and footer suppor
   assert.match(html, /Bosch WAE284A7NL\/12/);
   assert.match(html, /id="machine-profile"/);
   assert.match(html, /Ten model profiles/);
-  assert.match(html, /src="https:\/\/cdnjs\.buymeacoffee\.com\/1\.0\.0\/button\.prod\.min\.js"/);
-  assert.match(html, /data-slug="roels"/);
-  assert.match(html, /data-text="Buy me a beer"/);
+  assert.match(html, /class="support-button"/);
+  assert.match(html, /href="https:\/\/buymeacoffee\.com\/roels"/);
+  assert.match(html, />🍺<\/span> Buy me a beer<\/a>/);
+  assert.doesNotMatch(html, /cdnjs\.buymeacoffee\.com|fonts\.googleapis\.com/);
   assert.match(html, /EnergyZero/);
   assert.match(html, /https:\/\/www\.energyzero\.nl\/actuele-prijzen/);
   assert.doesNotMatch(html, /consumenten\.energyzero\.nl/);
@@ -56,6 +57,9 @@ test("the README exposes the maintained project badge inventory", async () => {
   const badgeBlock = readme.slice(0, readme.indexOf("A tiny, dependency-free planner"));
   assert.match(badgeBlock, /actions\/workflows\/validate\.yml\/badge\.svg/);
   assert.match(badgeBlock, /actions\/workflows\/deploy-pages\.yml\/badge\.svg/);
+  assert.match(badgeBlock, /actions\/workflows\/codeql\.yml\/badge\.svg/);
+  assert.match(badgeBlock, /actions\/workflows\/links\.yml\/badge\.svg/);
+  assert.match(badgeBlock, /actions\/workflows\/accessibility\.yml\/badge\.svg/);
   assert.match(badgeBlock, /github\/v\/release\/roelsroels\/laundry-window\?display_name=tag&label=release&cacheSeconds=300/);
   assert.match(badgeBlock, /github\/release-date\/roelsroels\/laundry-window/);
   assert.match(badgeBlock, /github\/last-commit\/roelsroels\/laundry-window\/main/);
@@ -65,8 +69,39 @@ test("the README exposes the maintained project badge inventory", async () => {
   assert.match(badgeBlock, /runtime%20dependencies-none/);
   assert.match(badgeBlock, /interface-English%20%7C%20Dutch/);
   assert.match(badgeBlock, /price%20intervals-15%20minutes/);
-  assert.equal((badgeBlock.match(/\[!\[/g) || []).length, 11);
+  assert.match(badgeBlock, /github\/issues\/roelsroels\/laundry-window/);
+  assert.match(badgeBlock, /contributions-welcome/);
+  assert.match(badgeBlock, /security-policy/);
+  assert.match(badgeBlock, /buy%20me%20a-beer/);
+  assert.equal((badgeBlock.match(/\[!\[/g) || []).length, 18);
   assert.doesNotMatch(badgeBlock, /sort=semver|release-invalid/);
+});
+
+test("repository health files back the project badges", async () => {
+  const [codeql, links, accessibility, lighthouse, dependabot, contributing, security, issueConfig, bugForm, machineForm, pullRequest] = await Promise.all([
+    readFile(new URL(".github/workflows/codeql.yml", root), "utf8"),
+    readFile(new URL(".github/workflows/links.yml", root), "utf8"),
+    readFile(new URL(".github/workflows/accessibility.yml", root), "utf8"),
+    readFile(new URL(".lighthouserc.json", root), "utf8"),
+    readFile(new URL(".github/dependabot.yml", root), "utf8"),
+    readFile(new URL("CONTRIBUTING.md", root), "utf8"),
+    readFile(new URL("SECURITY.md", root), "utf8"),
+    readFile(new URL(".github/ISSUE_TEMPLATE/config.yml", root), "utf8"),
+    readFile(new URL(".github/ISSUE_TEMPLATE/bug_report.yml", root), "utf8"),
+    readFile(new URL(".github/ISSUE_TEMPLATE/machine_profile.yml", root), "utf8"),
+    readFile(new URL(".github/pull_request_template.md", root), "utf8"),
+  ]);
+  assert.match(codeql, /github\/codeql-action\/analyze@/);
+  assert.match(links, /lycheeverse\/lychee-action@/);
+  assert.match(accessibility, /@lhci\/cli@0\.15\.1/);
+  assert.equal(JSON.parse(lighthouse).ci.assert.assertions["categories:accessibility"][1].minScore, 1);
+  assert.match(dependabot, /package-ecosystem: github-actions/);
+  assert.match(contributing, /Adding a washing machine/);
+  assert.match(security, /Report a vulnerability/);
+  assert.match(issueConfig, /blank_issues_enabled: false/);
+  assert.match(bugForm, /Version and build/);
+  assert.match(machineForm, /Complete model identifier/);
+  assert.match(pullRequest, /I checked the README badges/);
 });
 
 test("the deployment stamps a visible branch and commit version", async () => {
@@ -343,8 +378,9 @@ test("the nginx example includes safe static defaults", async () => {
   assert.match(config, /try_files \$uri \$uri\/ \/index\.html/);
   assert.match(config, /X-Content-Type-Options/);
   assert.match(config, /Content-Security-Policy/);
-  assert.match(config, /script-src 'self' https:\/\/cdnjs\.buymeacoffee\.com/);
-  assert.match(config, /style-src 'self' 'unsafe-inline' https:\/\/fonts\.googleapis\.com/);
-  assert.match(config, /font-src 'self' https:\/\/fonts\.gstatic\.com/);
+  assert.match(config, /script-src 'self';/);
+  assert.match(config, /style-src 'self' 'unsafe-inline';/);
+  assert.match(config, /font-src 'self';/);
   assert.match(config, /connect-src https:\/\/public\.api\.energyzero\.nl/);
+  assert.doesNotMatch(config, /cdnjs\.buymeacoffee\.com|fonts\.googleapis\.com|fonts\.gstatic\.com/);
 });

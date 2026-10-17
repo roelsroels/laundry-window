@@ -25,7 +25,7 @@ server {
 
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "no-referrer" always;
-    # The footer support button loads its script from Buy Me a Coffee's CDN and
-    # injects inline styles plus the Bree Serif web font from Google Fonts.
-    add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' https://cdnjs.buymeacoffee.com; font-src 'self' https://fonts.gstatic.com; connect-src https://public.api.energyzero.nl; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'" always;
+    # The support control is a normal link, so only first-party scripts, styles,
+    # fonts and images need to be permitted.
+    add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src https://public.api.energyzero.nl; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'" always;
 }

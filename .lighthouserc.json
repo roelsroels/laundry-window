@@ -1,0 +1,16 @@
+{
+  "ci": {
+    "collect": {
+      "staticDistDir": "./html",
+      "numberOfRuns": 1,
+      "settings": {
+        "onlyCategories": ["accessibility"]
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": ["error", { "minScore": 1 }]
+      }
+    }
+  }
+}

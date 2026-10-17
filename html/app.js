@@ -539,6 +539,5 @@
     calculate();
   });
   form.addEventListener("input", (event) => { if (event.target !== measured && event.target !== machineSelect) { invalidateSuggestion(); calculate(); } });
-  form.addEventListener("submit", (event) => event.preventDefault());
   calculate();
 })();

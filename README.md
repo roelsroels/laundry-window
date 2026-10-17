@@ -2,25 +2,33 @@
 
 [![Validate static site](https://github.com/roelsroels/laundry-window/actions/workflows/validate.yml/badge.svg)](https://github.com/roelsroels/laundry-window/actions/workflows/validate.yml)
 [![Deploy to GitHub Pages](https://github.com/roelsroels/laundry-window/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/roelsroels/laundry-window/actions/workflows/deploy-pages.yml)
+[![CodeQL](https://github.com/roelsroels/laundry-window/actions/workflows/codeql.yml/badge.svg)](https://github.com/roelsroels/laundry-window/actions/workflows/codeql.yml)
+[![Check links](https://github.com/roelsroels/laundry-window/actions/workflows/links.yml/badge.svg)](https://github.com/roelsroels/laundry-window/actions/workflows/links.yml)
+[![Accessibility](https://github.com/roelsroels/laundry-window/actions/workflows/accessibility.yml/badge.svg)](https://github.com/roelsroels/laundry-window/actions/workflows/accessibility.yml)
+<br>
 [![Latest release](https://img.shields.io/github/v/release/roelsroels/laundry-window?display_name=tag&label=release&cacheSeconds=300)](https://github.com/roelsroels/laundry-window/releases/latest)
 [![Release date](https://img.shields.io/github/release-date/roelsroels/laundry-window?label=released)](https://github.com/roelsroels/laundry-window/releases/latest)
 [![Last commit](https://img.shields.io/github/last-commit/roelsroels/laundry-window/main?label=last%20commit)](https://github.com/roelsroels/laundry-window/commits/main/)
-<br>
 [![Live site](https://img.shields.io/badge/live-Laundry%20Window-174e3e?logo=githubpages&logoColor=white)](https://roelsroels.github.io/laundry-window/)
 [![License: MIT](https://img.shields.io/github/license/roelsroels/laundry-window)](LICENSE)
+[![Open issues](https://img.shields.io/github/issues/roelsroels/laundry-window?label=open%20issues)](https://github.com/roelsroels/laundry-window/issues)
+<br>
 [![Machine profiles: 10](https://img.shields.io/badge/machine%20profiles-10-d7f06d?labelColor=174e3e)](#compatibility)
 [![Runtime dependencies: none](https://img.shields.io/badge/runtime%20dependencies-none-d7f06d?labelColor=174e3e)](#repository-layout)
 [![Interface: English and Dutch](https://img.shields.io/badge/interface-English%20%7C%20Dutch-d7f06d?labelColor=174e3e)](#what-it-handles)
 [![Price intervals: 15 minutes](https://img.shields.io/badge/price%20intervals-15%20minutes-d7f06d?labelColor=174e3e)](#live-market-price-suggestions)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-d7f06d?labelColor=174e3e)](CONTRIBUTING.md)
+[![Security policy](https://img.shields.io/badge/security-policy-d7f06d?labelColor=174e3e)](SECURITY.md)
+[![Buy me a beer](https://img.shields.io/badge/buy%20me%20a-beer-40DCA5?logo=buymeacoffee&logoColor=000)](https://buymeacoffee.com/roels)
 
 A tiny, dependency-free planner with **ten model-specific washing-machine profiles**. Choose the exact model, enter a cheap electricity-price window and select a programme; Laundry Window calculates the value to select on that machine’s start- or finish-timer control.
 
-The calculator runs entirely in the browser. It has no analytics, cookies, server-side code, build step, or package manager. On request, it downloads the latest Dutch day-ahead market-price feed to suggest the smartest timer value that can be selected immediately. The footer loads the optional Buy Me a Coffee button and its Bree Serif font from third-party CDNs. All publicly served files live under [`html/`](html/); repository documentation, tests, screenshots, and deployment configuration stay outside the web root.
+The calculator runs entirely in the browser. It has no analytics, cookies, server-side code, build step, package manager, or third-party runtime assets. On request, it downloads the latest Dutch day-ahead market-price feed to suggest the smartest timer value that can be selected immediately. The footer’s support control is an ordinary external link. All publicly served files live under [`html/`](html/); repository documentation, tests, screenshots, and deployment configuration stay outside the web root.
 
 See the [changelog](CHANGELOG.md) for release history and recent changes.
 
 > [!NOTE]
-> The price buttons call EnergyZero’s public API with the requested calendar date; programme, duration, and other planning values are never sent. As with any web request, the price provider receives ordinary connection metadata such as the visitor's IP address. The footer support button separately loads JavaScript from `cdnjs.buymeacoffee.com`, loads a font from Google Fonts, and links to `buymeacoffee.com/roels`.
+> The price buttons call EnergyZero’s public API with the requested calendar date; programme, duration, and other planning values are never sent. As with any web request, the price provider receives ordinary connection metadata such as the visitor's IP address. No Buy Me a Coffee resource is loaded unless the footer support link is selected.
 
 ## Screenshots
 
@@ -208,8 +216,16 @@ These are documented baseline/test settings rather than a promise that every loa
 ├── nginx/                   # Example nginx vhost
 ├── docs/SOURCES.md          # Appliance documentation and caveats
 ├── screenshots/             # Real desktop and mobile captures
-└── tests/smoke.mjs          # Dependency-free repository checks
+├── tests/smoke.mjs          # Dependency-free repository checks
+├── CONTRIBUTING.md          # Local checks and contribution policy
+└── SECURITY.md              # Supported version and private reporting route
 ```
+
+## Contributing and security
+
+Contributions are welcome. Start with [`CONTRIBUTING.md`](CONTRIBUTING.md), use the structured bug or machine-profile issue form, and let the validation, CodeQL, link and accessibility checks finish before merging. The README badge inventory deliberately reports maintainable project health and tested capabilities; vanity counters such as stars, forks, downloads and repository size are intentionally excluded.
+
+Report security-sensitive problems privately as described in [`SECURITY.md`](SECURITY.md), not through a public issue.
 
 ## License
 
