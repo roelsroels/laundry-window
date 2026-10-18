@@ -26,7 +26,7 @@ git diff --check
 
 The pull request checks additionally run CodeQL, link validation and a Lighthouse accessibility audit.
 
-The link workflow checks user-facing Markdown and HTML. Official Hisense, AEG and Beko source domains are excluded because they reject or break automated HTTP clients; their URLs remain documented for manual review. Runtime API URLs are covered by application tests because their bare endpoints require request parameters and cannot be validated as ordinary links.
+The link workflow checks user-facing Markdown and HTML. Official Hisense, AEG and Beko source domains are excluded because they reject or break automated HTTP clients; their URLs remain documented for manual review. Changelog comparison URLs are also excluded because a release pull request necessarily references its tag before that tag can safely be created. Runtime API URLs are covered by application tests because their bare endpoints require request parameters and cannot be validated as ordinary links.
 
 ## Adding a washing machine
 

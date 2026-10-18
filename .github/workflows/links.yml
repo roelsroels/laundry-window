@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # These official manufacturer sites reject or break automated HTTP clients.
       # Their source URLs stay documented, but cannot be a reliable CI gate.
+      # Changelog compare links reference the release tag before it is created.
       - name: Check repository links
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
@@ -28,6 +29,7 @@ jobs:
             --accept 200,204,206,429
             --exclude 'localhost|127\.0\.0\.1'
             --exclude 'https://(nl\.hisense\.com|www\.aeg\.nl|www\.beko\.com)/'
+            --exclude 'https://github\.com/roelsroels/laundry-window/compare/'
             './**/*.md'
             './html/**/*.html'
           fail: true

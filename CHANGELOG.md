@@ -4,6 +4,8 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-18
+
 ### Added
 
 - Added CodeQL security scanning, scheduled link validation and a Lighthouse accessibility gate, each represented by a real workflow badge.
@@ -76,7 +78,8 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 - Added a clear “no cheap window left today” result instead of recommending an immediate wash after the identified window had expired ([#13](https://github.com/roelsroels/laundry-window/pull/13)).
 - Applied scheduling fixes generically across all brands and timer modes rather than special-casing individual Samsung or Bosch profiles ([#14](https://github.com/roelsroels/laundry-window/pull/14)).
 
-[Unreleased]: https://github.com/roelsroels/laundry-window/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/roelsroels/laundry-window/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/roelsroels/laundry-window/compare/v1.0.3...v1.1.0
 [1.0.3]: https://github.com/roelsroels/laundry-window/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/roelsroels/laundry-window/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/roelsroels/laundry-window/compare/v1.0.0...v1.0.1
