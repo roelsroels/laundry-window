@@ -109,7 +109,7 @@ test("the deployment stamps a visible branch and commit version", async () => {
   const workflow = await readFile(new URL(".github/workflows/deploy-pages.yml", root), "utf8");
   const app = await readFile(new URL("html/app.js", root), "utf8");
   const translations = await readFile(new URL("html/i18n.js", root), "utf8");
-  assert.match(version, /version: "1\.0\.3"/);
+  assert.match(version, /version: "1\.1\.0"/);
   assert.match(version, /environment: "production"/);
   assert.match(version, /branch: "main"/);
   assert.doesNotMatch(version, /development|local/);
