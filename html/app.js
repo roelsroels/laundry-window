@@ -22,6 +22,7 @@
   let suggestionActive = false;
   let lastMarketResult = null;
   let lastExpiredMarketWindow = null;
+  let lastTimerLimitResult = null;
   let lastSuggestionDayOffset = null;
 
   try {
@@ -236,6 +237,7 @@
     suggestionActive = false;
     lastMarketResult = null;
     lastExpiredMarketWindow = null;
+    lastTimerLimitResult = null;
     lastSuggestionDayOffset = null;
     updateWindowContext();
     setMarketStatus(t("settingsChanged"));
@@ -284,6 +286,34 @@
     $("#suggest-tomorrow-result").addEventListener("click", () => suggestMarketWindow(1));
   }
 
+  function renderTimerLimitMarketWindow() {
+    if (!lastTimerLimitResult) return;
+    const { cheapWindow, horizon, dayOffset } = lastTimerLimitResult;
+    const machine = currentMachine();
+    const timerName = localised(machine.timer);
+    const values = {
+      day: t(dayOffset ? "tomorrow" : "today"),
+      start: momentText(new Date(cheapWindow.start)),
+      end: momentText(new Date(cheapWindow.end)),
+      earliest: momentText(new Date(horizon.earliestSetup)),
+      max: timerValueText(horizon.maxHours),
+      timer: timerName
+    };
+    const message = t("timerLimitMessage", values);
+    setMarketStatus(t("marketTimerLimit", values), "error");
+    $(".result-kicker").textContent = t("noTimerSelection");
+    $("#result").classList.add("result-warning");
+    $("#result-content").innerHTML = `
+      <div class="empty-result">
+        <div class="empty-dial" aria-hidden="true">${values.max}h</div>
+        <h2>${t("timerLimitHeading")}</h2>
+        <p id="timer-limit-message"></p>
+        <button class="refresh-button" id="refresh-result" type="button">${t("refresh")}</button>
+      </div>`;
+    $("#timer-limit-message").textContent = message;
+    $("#refresh-result").addEventListener("click", useNow);
+  }
+
   function updateMarketButtons(activeButton = null) {
     marketButtons.forEach((button) => {
       button.textContent = button === activeButton ? t("checking") : t(Number(button.dataset.suggestDay) ? "suggestTomorrow" : "suggestToday");
@@ -328,6 +358,22 @@
       }
       const best = cheapWindow ? marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange, preferredWindow) : null;
 
+      const horizon = cheapWindow && !best
+        ? marketPrices.timerHorizonBlock(planning, cycleMinutes(), timerRange, preferredWindow)
+        : null;
+      if (cheapWindow && horizon) {
+        $("#cheap-start").value = inputValue(new Date(cheapWindow.start));
+        $("#cheap-end").value = inputValue(new Date(cheapWindow.end));
+        suggestionActive = true;
+        lastSuggestionDayOffset = dayOffset;
+        lastMarketResult = null;
+        lastExpiredMarketWindow = null;
+        lastTimerLimitResult = { cheapWindow, horizon, dayOffset };
+        updateWindowContext();
+        renderTimerLimitMarketWindow();
+        return;
+      }
+
       if (!best || !cheapWindow) {
         const unavailable = dayOffset === 1 && !marketPrices.hasPricesForDay(points, planning, dayOffset);
         setMarketStatus(t(unavailable ? "tomorrowUnavailable" : "noDayFit", { day: t(dayOffset ? "tomorrow" : "today"), min: timerValueText(timerRange.min), max: timerValueText(timerRange.max), timer: localised(currentMachine().timer) }), "error");
@@ -339,6 +385,7 @@
       suggestionActive = true;
       lastSuggestionDayOffset = dayOffset;
       lastExpiredMarketWindow = null;
+      lastTimerLimitResult = null;
       lastMarketResult = { best, cheapWindow, dayOffset, availableUntil: new Date(intervals[intervals.length - 1].end) };
       updateWindowContext();
       calculate();
@@ -512,6 +559,7 @@
     updateThemeSwitch();
     updateMarketButtons();
     if (lastExpiredMarketWindow) renderExpiredMarketWindow();
+    else if (lastTimerLimitResult) renderTimerLimitMarketWindow();
     else {
       if (suggestionActive) renderMarketSuccess(); else setMarketStatus(t("marketDefault"));
       calculate();

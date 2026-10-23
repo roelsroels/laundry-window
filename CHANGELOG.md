@@ -4,6 +4,11 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- Stopped market suggestions from presenting a 0%-overlap timer value when the selected machine cannot yet reach a future low-price window.
+- Added a clear, bilingual machine-timer-limit state that confirms the programme fits the cheap window and shows the earliest useful time to prepare the machine.
+
 ## [1.1.0] - 2026-10-18
 
 ### Added

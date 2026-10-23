@@ -161,7 +161,7 @@
         candidate.windowOverlap = Math.max(0, Math.min(candidate.end, windowEnd) - Math.max(candidate.start, windowStart));
       });
       candidates.sort((a, b) => b.windowOverlap - a.windowOverlap || a.start - b.start || a.average - b.average || a.delayHours - b.delayHours);
-      return candidates[0];
+      return candidates[0].windowOverlap > 0 ? candidates[0] : null;
     }
 
     candidates.sort((a, b) => a.average - b.average || a.delayHours - b.delayHours);
@@ -183,6 +183,34 @@
     return end - (cycleMinutes + marginMinutes) * minute;
   }
 
+  function timerHorizonBlock(planningDate, cycleMinutes, timerRange, preferredWindow) {
+    const planning = new Date(planningDate).getTime();
+    const duration = Number(cycleMinutes) * minute;
+    const windowStart = Number(preferredWindow?.start);
+    const windowEnd = Number(preferredWindow?.end);
+    const marginMinutes = Math.max(0, Number(preferredWindow?.marginMinutes) || 0);
+    const choices = timerChoices(timerRange);
+    const maxHours = choices[choices.length - 1];
+    if (![planning, duration, windowStart, windowEnd, maxHours].every(Number.isFinite) || duration <= 0) return null;
+
+    const protectedStart = windowStart + marginMinutes * minute;
+    const protectedEnd = windowEnd - marginMinutes * minute;
+    if (protectedEnd - protectedStart < duration) return null;
+
+    const targetStart = protectedStart;
+    const targetEnd = targetStart + duration;
+    const requiredTimerMoment = timerRange?.mode === "start" ? targetStart : targetEnd;
+    const maximumReach = planning + maxHours * hour;
+    if (requiredTimerMoment <= maximumReach) return null;
+
+    return {
+      earliestSetup: requiredTimerMoment - maxHours * hour,
+      maxHours,
+      targetStart,
+      targetEnd
+    };
+  }
+
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, isPastTodayWindow, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices };
+  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, isPastTodayWindow, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices, timerHorizonBlock };
 })();

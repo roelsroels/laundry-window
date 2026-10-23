@@ -239,6 +239,29 @@ test("the market helper chooses the smartest timer value selectable right now", 
   assert.equal(market.findCheapestWaitSchedule, undefined);
   assert.equal(market.choosePracticalSchedule, undefined);
 
+  const horizonPlanning = new Date(2026, 9, 23, 15, 14);
+  const horizonDayStart = new Date(2026, 9, 23, 0, 0).getTime();
+  const horizonPoints = Array.from({ length: 192 }, (_, index) => ({
+    timestamp: new Date(horizonDayStart + index * 15 * 60000).toISOString(),
+    value: 20
+  }));
+  const horizonWindow = {
+    start: new Date(2026, 9, 24, 12, 15).getTime(),
+    end: new Date(2026, 9, 24, 15, 45).getTime(),
+    marginMinutes: 0
+  };
+  const unreachableChoice = market.findCheapestSchedule(horizonPoints, horizonPlanning, 78, 1, samsungTimer, horizonWindow);
+  assert.equal(unreachableChoice, null, "a 0%-overlap fallback must never be presented as a market recommendation");
+  const endTimerHorizon = market.timerHorizonBlock(horizonPlanning, 78, samsungTimer, horizonWindow);
+  assert.equal(endTimerHorizon.maxHours, 19);
+  assert.equal(endTimerHorizon.targetStart, new Date(2026, 9, 24, 12, 15).getTime());
+  assert.equal(endTimerHorizon.targetEnd, new Date(2026, 9, 24, 13, 33).getTime());
+  assert.equal(endTimerHorizon.earliestSetup, new Date(2026, 9, 23, 18, 33).getTime());
+  assert.equal(market.timerHorizonBlock(new Date(2026, 9, 23, 19, 0), 78, samsungTimer, horizonWindow), null, "the horizon warning must disappear once the maximum timer can reach the band");
+
+  const startTimerHorizon = market.timerHorizonBlock(horizonPlanning, 20, { min: 1, max: 19, step: 1, mode: "start" }, horizonWindow);
+  assert.equal(startTimerHorizon.earliestSetup, new Date(2026, 9, 23, 17, 15).getTime(), "start-delay machines are limited by the desired start rather than completion");
+
   const schedule = { start, end: start + 60 * 60000 };
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end, 60), { beforePercent: 0, afterPercent: 0 });
   assert.deepEqual(market.timelineCoverage(schedule, start, schedule.end - 15 * 60000, 60), { beforePercent: 0, afterPercent: 25 });
