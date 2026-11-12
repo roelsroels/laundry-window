@@ -4,6 +4,8 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-12
+
 ### Changed
 
 - Market suggestions now rank every timer value by the weighted wholesale price across the complete programme instead of first selecting quarters near the day’s single minimum.
@@ -89,7 +91,8 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 - Added a clear “no cheap window left today” result instead of recommending an immediate wash after the identified window had expired ([#13](https://github.com/roelsroels/laundry-window/pull/13)).
 - Applied scheduling fixes generically across all brands and timer modes rather than special-casing individual Samsung or Bosch profiles ([#14](https://github.com/roelsroels/laundry-window/pull/14)).
 
-[Unreleased]: https://github.com/roelsroels/laundry-window/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/roelsroels/laundry-window/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/roelsroels/laundry-window/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/roelsroels/laundry-window/compare/v1.0.3...v1.1.0
 [1.0.3]: https://github.com/roelsroels/laundry-window/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/roelsroels/laundry-window/compare/v1.0.1...v1.0.2
