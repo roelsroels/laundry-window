@@ -4,8 +4,14 @@ All notable changes to Laundry Window are recorded here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- Market suggestions now rank every timer value by the weighted wholesale price across the complete programme instead of first selecting quarters near the day’s single minimum.
+- Effectively equal full-programme prices now favour the earliest wash, and the displayed market window is aligned to the exact quarter-hours covering that complete schedule.
+
 ### Fixed
 
+- Prevented an isolated cheap quarter from producing a short “cheap window” and a more expensive complete wash than an earlier, broader low-price period.
 - Stopped market suggestions from presenting a 0%-overlap timer value when the selected machine cannot yet reach a future low-price window.
 - Added a clear, bilingual machine-timer-limit state that confirms the programme fits the cheap window and shows the earliest useful time to prepare the machine.
 

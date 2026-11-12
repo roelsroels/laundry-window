@@ -65,7 +65,7 @@ EnergyZero states that next-day electricity prices normally appear around **15:0
 
 Laundry Window evaluates the selected programme duration against immediate Start now and every timer value supported by the selected machine **at the current planning time**. For an end timer it subtracts the cycle duration from the selected completion offset; for a start timer it adds the delay before the cycle begins. Values that would imply the wash had already started are rejected.
 
-For automatic market suggestions, the optimiser considers **only values that can be selected right now**. Among those, a complete cycle inside the displayed low-price band and safety margin always wins, with the earliest such wash start preferred. It never asks the user to wait before programming the machine. When no current value fits completely, the value with the greatest overlap wins, followed by earliest start and average price. A zero-overlap value is never presented as a useful recommendation.
+For automatic market suggestions, the optimiser considers **only values that can be selected right now**. It calculates the time-weighted raw wholesale price across the selected programme’s complete duration for every candidate and chooses the lowest full-cycle average. Prices within €1/MWh (0.1 ct/kWh) are treated as effectively equal, in which case the earliest wash wins. It never asks the user to wait before programming the machine. An isolated cheap quarter therefore cannot beat an earlier, broader period when the surrounding quarters make the complete wash more expensive.
 
 If a programme fits the low-price band but that band lies beyond the selected machine’s maximum timer range, Laundry Window shows a dedicated **machine planning limit** state instead. It makes clear that the cheap window is long enough, identifies the machine’s maximum start- or finish-timer horizon as the blocker, and calculates the earliest useful time at which the machine can be prepared. Until then it deliberately shows no timer value. This logic is shared by every machine profile and applies to both start- and finish-timer controls.
 
@@ -73,7 +73,7 @@ A manually entered cheap-energy window keeps the normal calculator behaviour, in
 
 If today’s identified low-price band has already ended, the app does not turn a zero-overlap fallback into a **Start now** recommendation. It presents a no-timer state instead and offers to calculate tomorrow’s schedule.
 
-The green period remains separate from that machine-constrained recommendation. It is the longest contiguous low-price band for the chosen day, aligned to exact 15-minute intervals; its cutoff is `max(€5/MWh, the day’s minimum + €10/MWh)`. The start/end fields contain this actual band—not the proposed wash itself. If the best still-selectable wash extends beyond it, the timeline shows that portion in orange and reports the percentage that remains inside. This prevents a late request from making an already-missed cheap period look 100% reachable.
+The suggested start/end fields show the exact 15-minute market intervals covering the winning complete schedule (plus any selected safety margin). The proposed wash remains separately visible on the result timeline. This keeps the displayed window duration-aware and prevents a single unusually cheap quarter from being presented as though it were a useful full-programme window.
 
 Refreshing “now” reruns the same day’s market optimisation so the washer setting cannot silently become stale.
 
