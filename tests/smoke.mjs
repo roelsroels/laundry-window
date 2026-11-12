@@ -235,6 +235,35 @@ test("the market helper chooses the smartest timer value selectable right now", 
   assert.equal(startTimerChoice.delayHours, 1.5, "start-delay profiles must also return a value selectable immediately");
   assert.equal(startTimerChoice.start, new Date(2026, 7, 22, 11, 48).getTime());
   assert.equal(startTimerChoice.end, new Date(2026, 7, 22, 12, 8).getTime());
+
+  const durationAwarePlanning = new Date(2026, 10, 12, 9, 29);
+  const durationAwareDayStart = new Date(2026, 10, 12, 0, 0).getTime();
+  const durationAwarePoints = Array.from({ length: 96 }, (_, index) => {
+    const timestamp = durationAwareDayStart + index * 15 * 60000;
+    const time = new Date(timestamp);
+    const decimalHour = time.getHours() + time.getMinutes() / 60;
+    let value = 220;
+    if (decimalHour >= 13 && decimalHour < 14.5) value = 165;
+    if (decimalHour === 22.75 || decimalHour === 23.75) value = 140;
+    return { timestamp: time.toISOString(), value };
+  });
+  const isolatedMinimumWindow = market.findLowPriceWindow(durationAwarePoints, durationAwarePlanning, 0);
+  assert.equal(isolatedMinimumWindow.start, new Date(2026, 10, 12, 22, 45).getTime(), "the legacy threshold sees only the first isolated minimum");
+  assert.equal(isolatedMinimumWindow.end, new Date(2026, 10, 12, 23, 0).getTime());
+  const idealDurationAwareSchedule = market.findCheapestDaySchedule(durationAwarePoints, durationAwarePlanning, 78, 0);
+  assert.equal(idealDurationAwareSchedule.start, new Date(2026, 10, 12, 13, 0).getTime(), "the unrestricted day reference must also price the complete programme");
+  assert.equal(idealDurationAwareSchedule.end, new Date(2026, 10, 12, 14, 18).getTime());
+  const durationAwareChoice = market.findCheapestSchedule(durationAwarePoints, durationAwarePlanning, 78, 0, samsungTimer);
+  assert.equal(durationAwareChoice.delayHours, 5, "the complete-cycle average must beat a later isolated cheap quarter");
+  assert.equal(durationAwareChoice.start, new Date(2026, 10, 12, 13, 11).getTime());
+  assert.equal(durationAwareChoice.end, new Date(2026, 10, 12, 14, 29).getTime());
+  const durationAwareWindow = market.priceWindowForSchedule(durationAwarePoints, durationAwareChoice);
+  assert.equal(durationAwareWindow.start, new Date(2026, 10, 12, 13, 0).getTime());
+  assert.equal(durationAwareWindow.end, new Date(2026, 10, 12, 14, 30).getTime());
+  const durationAwareWindowWithMargin = market.priceWindowForSchedule(durationAwarePoints, durationAwareChoice, 15);
+  assert.equal(durationAwareWindowWithMargin.start, new Date(2026, 10, 12, 12, 45).getTime());
+  assert.equal(durationAwareWindowWithMargin.end, new Date(2026, 10, 12, 14, 45).getTime());
+
   assert.equal(market.findWaitSchedule, undefined);
   assert.equal(market.findCheapestWaitSchedule, undefined);
   assert.equal(market.choosePracticalSchedule, undefined);

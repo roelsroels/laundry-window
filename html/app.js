@@ -336,29 +336,34 @@
       const response = await fetch(marketPrices.priceUrl(planning));
       if (!response.ok) throw new Error(`Price service returned ${response.status}`);
       const points = marketPrices.energyZeroPricePoints(await response.json());
-      const cheapWindow = marketPrices.findLowPriceWindow(points, planning, dayOffset);
       const intervals = marketPrices.normalisePricePoints(points);
       if (!intervals.length) throw new Error("The price feed returned no usable values");
       const timerRange = currentMachine().timerRange;
-      const preferredWindow = cheapWindow ? {
-        start: cheapWindow.start,
-        end: cheapWindow.end,
-        marginMinutes: Number($("#safety-margin").value)
+      const margin = Number($("#safety-margin").value);
+      const idealSchedule = marketPrices.findCheapestDaySchedule(points, planning, cycleMinutes(), dayOffset);
+      const referenceWindow = idealSchedule ? marketPrices.priceWindowForSchedule(points, idealSchedule, margin) : null;
+      const preferredWindow = referenceWindow ? {
+        start: referenceWindow.start,
+        end: referenceWindow.end,
+        marginMinutes: margin
       } : null;
-      if (cheapWindow && marketPrices.isPastTodayWindow(cheapWindow, planning, dayOffset)) {
-        $("#cheap-start").value = inputValue(new Date(cheapWindow.start));
-        $("#cheap-end").value = inputValue(new Date(cheapWindow.end));
+      if (referenceWindow && marketPrices.isPastTodayWindow(referenceWindow, planning, dayOffset)) {
+        $("#cheap-start").value = inputValue(new Date(referenceWindow.start));
+        $("#cheap-end").value = inputValue(new Date(referenceWindow.end));
         suggestionActive = true;
         lastSuggestionDayOffset = dayOffset;
         lastMarketResult = null;
-        lastExpiredMarketWindow = cheapWindow;
+        lastExpiredMarketWindow = referenceWindow;
         updateWindowContext();
         renderExpiredMarketWindow();
         return;
       }
-      const best = cheapWindow ? marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange, preferredWindow) : null;
+      const best = marketPrices.findCheapestSchedule(points, planning, cycleMinutes(), dayOffset, timerRange);
+      const cheapWindow = best
+        ? marketPrices.priceWindowForSchedule(points, best, margin)
+        : referenceWindow;
 
-      const horizon = cheapWindow && !best
+      const horizon = referenceWindow && !best
         ? marketPrices.timerHorizonBlock(planning, cycleMinutes(), timerRange, preferredWindow)
         : null;
       if (cheapWindow && horizon) {

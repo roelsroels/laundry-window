@@ -4,6 +4,7 @@
   const API_URL = "https://public.api.energyzero.nl/public/v1/prices";
   const minute = 60000;
   const hour = 60 * minute;
+  const priceTieThreshold = 1;
 
   function priceUrl(referenceDate) {
     const date = new Date(referenceDate);
@@ -131,6 +132,31 @@
     return best ? { start: best.start, end: best.end, average: best.weighted / best.duration, threshold } : null;
   }
 
+  function selectBestPricedSchedule(candidates) {
+    if (!candidates.length) return null;
+    const minimumAverage = Math.min(...candidates.map((candidate) => candidate.average));
+    return candidates
+      .filter((candidate) => candidate.average <= minimumAverage + priceTieThreshold)
+      .sort((a, b) => a.start - b.start || a.average - b.average || (a.delayHours || 0) - (b.delayHours || 0))[0];
+  }
+
+  function findCheapestDaySchedule(rawPoints, planningDate, cycleMinutes, dayOffset = 0) {
+    const duration = Number(cycleMinutes) * minute;
+    if (!Number.isFinite(duration) || duration <= 0) return null;
+    const intervals = normalisePricePoints(rawPoints);
+    const bounds = localDayBounds(planningDate, dayOffset);
+    const starts = new Set([bounds.start]);
+    intervals.forEach((interval) => {
+      starts.add(interval.start);
+      starts.add(interval.end - duration);
+    });
+    const candidates = [...starts]
+      .filter((start) => start >= bounds.start && start + duration <= bounds.end)
+      .map((start) => ({ start, end: start + duration, average: averagePrice(start, start + duration, intervals) }))
+      .filter((candidate) => candidate.average !== null);
+    return selectBestPricedSchedule(candidates);
+  }
+
   function findCheapestSchedule(rawPoints, planningDate, cycleMinutes, dayOffset = null, timerRange = { min: 3, max: 19 }, preferredWindow = null) {
     const planning = new Date(planningDate).getTime();
     if (!Number.isFinite(planning) || !Number.isFinite(cycleMinutes) || cycleMinutes <= 0) return null;
@@ -164,8 +190,27 @@
       return candidates[0].windowOverlap > 0 ? candidates[0] : null;
     }
 
-    candidates.sort((a, b) => a.average - b.average || a.delayHours - b.delayHours);
-    return candidates[0];
+    return selectBestPricedSchedule(candidates);
+  }
+
+  function priceWindowForSchedule(rawPoints, schedule, marginMinutes = 0) {
+    const intervals = normalisePricePoints(rawPoints);
+    const start = Number(schedule?.start);
+    const end = Number(schedule?.end);
+    const margin = Math.max(0, Number(marginMinutes) || 0) * minute;
+    if (![start, end].every(Number.isFinite) || end <= start) return null;
+
+    const desiredStart = start - margin;
+    const desiredEnd = end + margin;
+    if (averagePrice(desiredStart, desiredEnd, intervals) === null) return null;
+    const covering = intervals.filter((interval) => interval.start < desiredEnd && interval.end > desiredStart);
+    if (!covering.length) return null;
+
+    return {
+      start: covering[0].start,
+      end: covering[covering.length - 1].end,
+      average: averagePrice(start, end, intervals)
+    };
   }
 
   function timelineCoverage(schedule, windowStart, windowEnd, cycleMinutes) {
@@ -212,5 +257,5 @@
   }
 
   const scope = typeof window === "undefined" ? globalThis : window;
-  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, isPastTodayWindow, latestSafeStart, normalisePricePoints, priceUrl, scheduleForTimer, timelineCoverage, timerChoices, timerHorizonBlock };
+  scope.LaundryMarketPrices = { API_URL, energyZeroPricePoints, findCheapestDaySchedule, findCheapestSchedule, findLowPriceWindow, hasPricesForDay, isPastTodayWindow, latestSafeStart, normalisePricePoints, priceUrl, priceWindowForSchedule, scheduleForTimer, timelineCoverage, timerChoices, timerHorizonBlock };
 })();
